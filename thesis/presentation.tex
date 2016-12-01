@@ -1,0 +1,602 @@
+\documentclass{beamer}
+\usetheme{metropolis}           % Use metropolis theme
+
+% ---------------------------------------------------
+% Change colours for metropolis theme
+% ---------------------------------------------------
+\definecolor{mcmaster}{RGB}{120,0, 50}
+\definecolor{lightGray}{RGB}{120, 120, 120}
+\definecolor{lightBlue}{RGB}{80, 80, 180}
+
+\setbeamercolor{normal text}{fg=mcmaster, bg=white}
+\setbeamercolor{alerted text}{fg=lightGray}
+\setbeamercolor{example text}{fg=lightBlue}
+
+%----------------------------------------------------------------------------------------
+% Handling Citations
+%----------------------------------------------------------------------------------------
+\usepackage[backend=bibtex,style=authoryear,natbib=true,sorting=nyt,maxbibnames=99]{biblatex} % User the bibtex backend with the authoryear citation style (which resembles APA)
+% can change the maxbibnames to cut long author lists to specified length followed by et al., currently set to 99. 
+\addbibresource{bibliography.bib} % The filename of the bibliography
+\usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
+
+%---------------------------------------------------------------------------------------
+% Thesis acronyms and packages
+%---------------------------------------------------------------------------------------
+\usepackage{acro}
+\usepackage{amsmath}
+\usepackage{lineno}
+
+\DeclareAcronym{EC}{
+	short = EC,
+	long = entorhinal cortex
+}
+\DeclareAcronym{DG}{
+	short = DG,
+ 	long = dentate gyrus
+}
+\DeclareAcronym{DGC}{
+	short = DGC,
+ 	long = dentate granule cell
+}
+\DeclareAcronym{NPC}{
+	short = NPC,
+	long = neural progenitor cell
+}
+\DeclareAcronym{AHN}{
+	short = AHN,
+	long = adult hippocampal neurogenesis
+}
+\DeclareAcronym{PP}{
+	short = PP,
+	long = perforant pathway
+}
+\DeclareAcronym{TA}{
+	short = TA,
+	long = temporoammonic pathway
+}
+\DeclareAcronym{ANN}{
+	short = ANN,
+	long = artificial neural network
+}
+\DeclareAcronym{FFNN}{
+	short = FFNN,
+	long = feed forward neural network
+}
+\DeclareAcronym{RNN}{
+	short = RNN,
+	long = recurrent neural network
+}
+\DeclareAcronym{LSTM}{
+	short = LSTM,
+	long = long short term memory
+}
+\DeclareAcronym{ESN}{
+	short = ESN,
+	long = echo state network
+}
+\DeclareAcronym{LSM}{
+	short = LSM,
+	long = liquid state machine
+}
+\DeclareAcronym{RBM}{
+	short = RBM,
+   	long = restricted boltzmann machine
+}
+\DeclareAcronym{CD}{
+	short = CD,
+	long = contrastive divergence
+}
+\DeclareAcronym{CRBM}{
+	short = CRBM,
+ 	long = conditional restricted boltzmann machine
+}
+\DeclareAcronym{TRBM}{
+	short = TRBM,
+	long = temporal restricted boltzmann machine
+}
+\DeclareAcronym{DBN}{
+	short = DBN,
+	long = deep belief network
+}
+\DeclareAcronym{DNC}{
+	short = DNC,
+	long = dynamic node creation
+}
+
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\titlegraphic{\includegraphics[width=.1\paperwidth]{Figs/mcmaster-logo.eps}}
+\title{Computational Modelling of Adult Hippocampal Neurogenesis}
+\subtitle{Masters Defence}
+%\includegraphics[width=.2\paperwidth]{Figs/mcmaster-logo.eps}
+%\author{Rory Finnegan} % Your name
+\author{Rory Finnegan\inst{1}, Dr. Suzanna Becker\inst{2}}
+\institute{\href{http://neurosciencemcmaster.ca/}{McMaster Integrative Neuroscience \& Discovery}}
+\date{\today} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}
+\frametitle{Overview} % Table of contents slide, comment this block out to remove it
+\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
+
+\hypersetup{urlcolor=blue}
+
+%--------------------------------------
+% Preface
+%--------------------------------------
+\begin{frame}
+\frametitle{Preface}
+\begin{itemize}
+\item Publication in {\em Frontiers in Systems Neuroscience} \footcite{finnegan-becker-15}
+\item Julia\footcite{julialang} \& Boltzmann.jl\footcite{boltzmannjl}
+\item NSERC Discovery \& Invenia Technical Computing
+\end{itemize}
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+%	PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+\section{Background}
+
+\begin{frame}
+\frametitle{Hippocampus}
+\begin{columns}
+\begin{column}{.49\linewidth}
+\begin{itemize}
+\item Rapid memory encoding and recall
+\item Highly structured layers
+\item 1 of only 2 locations where \ac{AHN} occurs
+\end{itemize}
+\end{column}
+\begin{column}{.49\linewidth}
+\center
+\begin{figure}
+\includegraphics[width=.8\linewidth]{Figs/hippocampus-location}
+\caption{\citet{gray-1918}}
+\label{fig:hippocampus-loc}
+\end{figure}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Question}
+How do differences between young and mature dentate granule cells\newline impact memory encoding and retrieval?
+\end{frame}
+
+\begin{frame}
+\frametitle{Neural Modelling}
+\center
+"All models are wrong but some are useful"\footcite{box-87}
+\end{frame}
+
+% RBM Slide
+\begin{frame}
+\frametitle{Restricted Boltzmann Machine}
+\begin{columns}[T] % contents are top vertically aligned
+\begin{column}[T]{.49\linewidth} % alternative top-align that's better for graphics
+\includegraphics[width=\textwidth]{Figs/RBM.png}
+\end{column}
+\begin{column}[T]{.49\linewidth} % each column can also be its own environment
+\begin{itemize}
+\item Bi-partite graph
+\item Hebbian learning rule
+\item Energy based model
+\item Stackable
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\section{Neurogenesis Model}
+
+\begin{frame}
+\frametitle{Young Dentate Granule Cells}
+Young \ac{DGC}s are:
+\begin{itemize}
+\item more plastic\footcite{enhanced_synaptic_plasticity}
+\item less lateral inhibition\footcite{marin-burgin-et-al-12}
+\item more sparsely connected\footcite{wang-et-al-00}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Neuron Growth}
+Gompertz function to model growth\footcite{gompertz}
+\begin{columns}[T]
+\begin{column}[T]{.55\linewidth}
+\begin{table}[h]
+\center
+\begin{tabular}{l l l}
+\toprule
+\textbf{Hyperparam} & \textbf{Young} & \textbf{Mature} \\
+\midrule
+learning rate & high & low \\
+sparsity cost & low & high \\
+decay rate & high & low \\
+connectivity & low & high \\
+\bottomrule
+\end{tabular}
+\end{table}
+\end{column}
+\begin{column}[T]{.4\linewidth} % alternative top-align that's better for graphics
+\includegraphics[width=\textwidth]{Figs/gompertz}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Neural Turnover}
+Turnover neurons with low saliency (ie: small weight magnitude and std). \footcite{apoptosis-review}
+\end{frame}
+
+\begin{frame}
+\frametitle{Methods}
+\begin{itemize}
+\item Iteratively trained on similar groups of patterns
+\item Hamming distance between initial pattern and reconstruction
+\item Compare Sparse RBM vs Neurogenesis models with and without neural turnover
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Expectations}
+\begin{itemize}
+\item Improved accuracy for neurogenesis models
+\item better performance with sparse connectivity
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results}
+\center
+\includegraphics[width=.7\linewidth]{Figs/samesession_figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Summary}
+\begin{itemize}
+\item Young DGCs decrease rather than increase pattern separation. Supported by McAvoy\footcite{mcavoy-et-al-15}.
+\item What about regulation of neurogenesis?
+\item How does this impact recall?
+\end{itemize}
+\end{frame}
+
+\section{Hybrid additive \& replacement model}
+
+\begin{frame}
+\frametitle{Hybrid additive \& replacement model}
+Regulate neurogenesis and apoptosis as dynamic processes.
+\begin{itemize}
+\item network growing \footcite{cascade-correlation}\footcite{DNC}
+\item network pruning techniques \footcite{optimal-brain-damage} 
+\item can we do both?
+\item pseudo-likelihood convergence
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Methods}
+\begin{itemize}
+\item[] Generate dataset with variable complexity
+\item[] Iterative training per dataset
+	\begin{itemize}
+	\item[1] Train RBM
+	\item[2] Use convergence algorithm to grow \& prune network
+	\item[3] Repeat (100 iterations)
+	\end{itemize}
+\item[] Repeat 3 times (total of 300 training iterations)
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results}
+\center
+\includegraphics[width=.7\linewidth]{Figs/dynamic_regulated}
+\end{frame}
+
+\begin{frame}
+\frametitle{Summary}
+\begin{itemize}
+\item Method for modelling regulated neurogenesis and apoptosis
+\item Converges on a hidden layer size relative to the complexity of the dataset.
+\item Method adapts to changes in the input dataset through rapid apoptosis and neurogenesis
+\end{itemize}
+\end{frame}
+
+\section{Full Hippocampal Model}
+
+\begin{frame}
+\frametitle{Conditional RBM}
+\begin{columns}[T]
+\begin{column}[T]{.49\linewidth}
+\begin{itemize}
+\item Condition an previous inputs (or anything really)
+\item Autoregressive weights
+\item Popular way of encoding time and sequences in RBM
+\end{itemize}
+\end{column}
+\begin{column}[T]{.49\linewidth}
+\includegraphics[width=.9\textwidth]{Figs/CRBM}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Hippocampal Circuit}
+\begin{columns}[T]
+\begin{column}[T]{.49\linewidth}
+\begin{itemize}
+\item Stacked RBMs and Conditional RBMs
+\item Combined CA3 \& CA1 associative layer for cued recall
+\item Condition on EC input
+\end{itemize}
+\end{column}
+\begin{column}[T]{.49\linewidth}
+\includegraphics[height=.9\textwidth]{Figs/hippocampal-model}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Methods}
+\begin{itemize}
+\item Iteratively trained on similar groups of patterns
+\item Hamming distance between base prototype (rather than input pattern) and reconstruction
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Experiment}
+\begin{itemize}
+\item Compare Sparse RBM vs Neurogenesis models with and without neural turnover
+\item Expected improved cued recall performance for neurogenesis models
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results Experiment}
+\center
+\includegraphics[width=.7\linewidth]{Figs/samesession_recall}
+\end{frame}
+
+\begin{frame}
+\frametitle{Summary}
+\begin{itemize}
+\item Again, young DGCs decrease rather than increase pattern separation.
+\item Difference is larger in the full hippocampal circuit.
+\end{itemize}
+\end{frame}
+
+% Conclusion
+% ----------------------
+\section{Conclusion}
+
+\begin{frame}
+\frametitle{Discussion and Future Work}
+\begin{itemize}
+\item[1] How does our model perform on temporal sequence learning?
+\item[2] How do changes in the temporal dynamics of action potentials between young and mature \ac{DGC}s impact performance?
+\item[3] How well does this model fit real world recording such as place, grid and time cell recordings?
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Summary}
+\begin{itemize}
+\item Novel model of neurogenesis, which accounts for the developmental trajectory of adult-born \ac{DGC}s
+\item Expanded to incorporate regulation of neurogenesis \& apoptosis
+\item Improves cued recall performance within a full hippocampal circuit
+\end{itemize}
+\end{frame}
+
+% Appendix
+% ---------------
+\section*{Appendix}
+
+\begin{frame}
+\frametitle{Hippocampal Circuitry}
+\center
+\includegraphics[width=.55\textwidth]{Figs/hippocampal_circuit}
+\end{frame}
+
+\begin{frame}
+\frametitle{Adult Hippocampal Neurogenesis}
+How do new neurons impact memory encoding and retrieval?
+\begin{itemize}
+\item mitigating interference 
+\footcite{chambers-potenza-hoffman-miranker-04}
+\item temporal association of items \footcite{aimone-wiles-gage-06}
+\item clearance of remote memories 
+\footcite{deisseroth-singla-toda-monje-palmer-malenka-04}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Hippocampal Modelling}
+\begin{itemize}
+\item Marr's theory of archicortex \footcite{marr-71}
+\item \ac{DG} lateral inhibition \& pattern separation
+\item CA3 recurrent connection \& pattern completion
+\item modelling can 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Adult Hippocampal Neurogenesis Modelling}
+\begin{itemize}
+\item Replacement models \footcite{replacement_neurogenesis}
+\item Additive models \footcite{additive_neurogenesis}
+\item Regulated neural turnover \footcite{deisseroth-singla-toda-monje-palmer-malenka-04}
+\item Synaptogenesis \footcite{butz-et-al-06}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Artificial Neural Nets}
+\begin{columns}[T]
+\begin{column}[T]{.49\linewidth}
+\includegraphics[width=\textwidth]{Figs/MLP.png}
+\end{column}
+\begin{column}[T]{.49\linewidth}
+\begin{itemize}
+\item neural networks as cyclic or acyclic graphs
+\item nodes represent neurons
+\item edges (or weights) represent synapses.
+\item learning rules \& Hebbian learning
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Many types of ANNs}
+There are many types of ANNs:
+\begin{itemize}
+\item Feed Forward Neural Networks (MLP)
+\item Recurrent Neural Networks (RMLP, ESN, LSTM, Hopfield nets, \textbf{RBMs})
+\item Spiking Neural Networks
+\end{itemize}
+\end{frame}
+
+% RBM - Learning Rule
+\begin{frame}
+\frametitle{RBM Learning}
+\begin{equation}
+\Delta W_{ij} = \epsilon((v_{i}h_{j})_{data} - (v_{i}h_{j})_{recon}) \label{eq.rbm_learning_rule}
+\end{equation}
+\begin{figure}
+\includegraphics[width=.8\textwidth]{Figs/CD.png}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Turnover scoring}
+\begin{equation}
+Z_i = (\alpha * Strength_i + \beta * Differentiation_i + \gamma * Age_i) / (\alpha + \beta + \gamma) \label{eq.turnover}
+\end{equation}
+where:
+\small
+\begin{itemize}
+\item[]$i$ - index for hidden unit
+\item[]$Z$ - survivability score
+\item[]$Strength$ - mean absolute weight
+\item[]$Differentiation$ - std of weights
+\item[]$Age$ - neural age
+\item[]$\alpha$, $\beta$ \& $\gamma$ equal 0.2, 0.65 and 0.15 respectively 
+\end{itemize}
+\normalsize
+\end{frame}
+
+\begin{frame}
+\frametitle{Convergence approach}
+To monitor convergence we simply use the ratio test, also referred to as the D'Alembert's criterion \footcite{ratio-test}.
+\begin{equation}
+r = |\frac{a_{n+1}}{a_{n}}| \label{eq.conv}
+\end{equation}
+when:
+\begin{itemize}
+\item[]$r < 1$ then pseudo-likelihood is converging
+\item[]$r = 1$ then pseudo-likelihood cannot converge anymore
+\item[]$r > 1$ then pseudo-likelihood is diverging
+\end{itemize}
+\end{frame}
+
+% Figures
+% --------------------
+\section*{Figures}
+
+\begin{frame}
+\frametitle{Hippocampus Anatomy}
+\begin{columns}
+\begin{column}{.49\linewidth}
+\includegraphics[width=\textwidth, keepaspectratio=true]{Figs/hippocampus-anatomy2}
+\end{column}
+\begin{column}{.49\linewidth}
+\begin{itemize}
+\item Drawing of neural circuitry in the hippocampal formation \citep{cajal-1909}. 
+\item Arrows show the path of the trisynaptic pathway
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results Experiment 1}
+\center
+The sparsity constraint does improve performance.
+\includegraphics[width=0.7\linewidth]{Figs/base_figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results: multi-session}
+\center
+\includegraphics[width=.7\linewidth]{Figs/multisession_figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Encoding Results Table}
+\begin{table}[!h]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lllll}\toprule
+Simulation & Models & Means & Confidence Interval & Significant\\\midrule
+SameSession &&&\\ 
+& SparseRBM vs Neurogenesis & (0.883, 0.938) & (0.035, 0.057) & *\\
+& SparseRBM vs Neurogenesis Sparsely Connected & (0.883, 0.938) & (0.04, 0.065) & *\\
+& Neurogenesis vs Neurogenesis Sparsely Connected & (0.93, 0.938) & (0.006, 0.01) & *\\
+\\
+MultiSession &&&\\
+& SparseRBM vs Neurogenesis & (0.883, 0.934) & (0.04, 0.06) & *\\
+& SparseRBM vs Neurogenesis Sparsely Connected & (0.883, 0.932) & (0.037, 0.058) & *\\
+& Neurogenesis vs Neurogenesis Sparsely Connected & (0.934, 0.932) & (-0.004, 0.0) &\\
+\end{tabular}
+}
+\label{Tab:encoding-stats}
+\end{table}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results Experiment - multi session}
+\center
+\includegraphics[width=.7\linewidth]{Figs/multisession_recall}
+\end{frame}
+
+\begin{frame}
+\frametitle{Recall Results Table}
+\begin{table}[h]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lllll}\toprule
+Simulation & Models & Means & Confidence Interval & Significant\\\midrule
+SameSession &&&\\ 
+& SparseRBM vs Neurogenesis & (0.635, 0.81) & (0.148, 0.203) & *\\
+\\
+MultiSession &&&\\
+& SparseRBM vs Neurogenesis & (0.645, 0.811) & (0.144, 0.19) & *\\
+\end{tabular}
+}
+\label{Tab:recall-stats}
+\end{table}
+\end{frame}
+
+% References
+%------------------
+\begin{frame}[allowframebreaks]
+\frametitle{References}
+\printbibliography[heading=bibintoc]
+\end{frame}
+
+\end{document} 

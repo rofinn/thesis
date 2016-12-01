@@ -1,0 +1,613 @@
+\chapter{Introduction}
+\label{chap:intro}
+The role of the hippocampus in memory has been a subject of endless
+fascination for many decades. 
+It is widely recognized that
+the hippocampus is crucial for rapid, accurate encoding and retrieval of
+associative memories. 
+However, the neural mechanisms underlying these
+complex operations are still relatively poorly understood.
+In particular, despite the numerous theories and models put forward, 
+many questions regarding the functional importance of \ac{AHN} 
+remain unanswered.
+In this thesis, we will be using an \ac{ANN} to explore the functional 
+role \ac{AHN} and young \acp{DGC} play in learning and memory.
+
+\section{Hippocampal Structure \& Function}
+Located under the cerebral cortex, in the medial temporal lobe of the vertebrate brain,
+the hippocampal structure consists of the \ac{EC}, \ac{DG}, and cornu 
+ammonis sub-layers CA1 and CA3. 
+Cortical sensory information from the perirhinal, parahippocampal, 
+and prefrontal cortices enters the hippocampus via layers II and III of the \ac{EC}. 
+Layer II inputs are projected onto the \ac{DG} and CA3 via the \ac{PP}, while 
+information from layer III is relayed to the CA1 via the \ac{TA}. 
+Information processed within 
+the hippocampus is propagated from the CA1 layer back to the aforementioned 
+cortical areas via deep-layer \ac{EC} neurons.
+The \ac{DG} receives information from the \ac{EC} and projects onto the CA3 
+pyramidal cells via mossy fibres. 
+Due to high levels of feedforward and feedback 
+inhibition from local interneurons and extremely low firing rates among 
+\acp{DGC}, it is believed that the \ac{DG} serves 
+to separate input patterns \citep{jung-mcnaughton-93,chawla-et-al-05, rolls-1987, oreilly_hippocampal_encoding_storage_and_recall, rolls-treves-1998}. 
+Despite the sparse activation of \acp{DGC} 
+within the \ac{DG}, evidence suggests that a single mossy fibre synapse is capable 
+of activating many CA3 pyramidal cells, indicating that the \ac{DG} has a significant influence on 
+CA3 memory encoding \citep{mcnaughton-morris-87,treves-rolls-92,
+oreilly_hippocampal_encoding_storage_and_recall,
+mcclelland-mcnaughton-oreilly-95,myers-scharfman-09}.
+Along with receiving input from the \ac{EC} and \ac{DG} via the \ac{PP} and mossy fibres 
+respectively, the CA3 receives input from itself via many recurrent collateral connections. 
+These are thought to help form the auto-associative activity needed for memory reconstruction 
+and/or temporal encoding. 
+Recent evidence indicates that reciprocal connection may exist between the CA3 
+and the \ac{DG}, and between the CA3 and the \ac{EC} \citep{CA3_DG_backprojections_bio}. 
+Despite a significant focus on modelling the trisynaptic pathway 
+(\ac{EC} $\rightarrow$ \ac{DG} $\rightarrow$ CA3 $\rightarrow$ CA1 $\rightarrow$ \ac{EC}), 
+computational models utilizing these reciprocal connections have shown better pattern separation and recall 
+capabilities \citep{CA3_DG_backprojections}. 
+While \citet{hippocampal-circuit} provide a more thorough overview of the hippocampal circuitry,
+figures ~\ref{fig:hippocampus-loc}, ~\ref{fig:hippocampus-ana} and ~\ref{fig:hippocampal_circuit} 
+are provided as a visual summary of the hippocampal anatomy and circuitry. 
+In particular, figure ~\ref{fig:hippocampal_circuit} covers the hippocampal 
+layers modelled in this thesis.
+
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}[b]{.45\textwidth}
+	\includegraphics[width=\textwidth]{Figs/hippocampus-location}
+	\caption{Posterior and inferior cornua of left lateral ventricle exposed from the side \citep{gray-1918}.}
+	\label{fig:hippocampus-loc}
+\end{subfigure}
+\qquad
+\begin{subfigure}[b]{.45\textwidth}
+	\centering
+	\includegraphics[width=.7\textwidth, keepaspectratio=true]{Figs/hippocampus-anatomy2}
+	\caption{
+	Early drawing of neural circuitry in the hippocampal formation \citep{cajal-1909}. 
+	The original arrows show the path of of excitation through the trisynaptic pathway, 
+	but additional labels for the \ac{EC}, 
+	\ac{DG}, CA3 and CA1 have been added for clarity.
+	}
+	\label{fig:hippocampus-ana}
+\end{subfigure}
+\caption{}
+\label{fig:hippocampal-anatomy}
+\end{figure}
+
+\begin{figure}[!ht]
+\begin{center}
+\includegraphics[width=10cm]{Figs/hippocampal_circuit}
+\end{center}
+\caption{
+All cortical sensory information from the 
+perirhinal, parahippocampal, and prefrontal cortices enters the hippocampus via 
+layers II and III of the \ac{EC}. 
+The \ac{DG} receives input directly from layer II 
+\ac{EC} axons via the \ac{PP}, where it is believed that the \ac{DG} performs 
+pattern separation on the input through lateral inhibition. 
+The CA3 layer receives input from both the \ac{EC} via the \ac{PP}, and 
+the \ac{DG} via mossy fibres. 
+The dense recurrent connections among the 
+CA3 pyramidal neurons are thought to be involved in 
+associative retrieval of memories. 
+These pyramidal neurons relay 
+information to the CA1 through the Schaffer collaterals. 
+Along with input from the CA3 layer, the CA1 receives information 
+from the \ac{EC} layer III axons via the \ac{TA}. 
+All excitatory output leaves the hippocampal formation via back-projections 
+through CA1 layer to the deep-layer neurons of the \ac{EC} and onto the 
+aforementioned cortical areas.
+}
+\label{fig:hippocampal_circuit}
+\end{figure}
+
+Marr's theory of archicortex \citep{marr-71} was highly influential in setting the stage
+for subsequent computational theories of hippocampal function. 
+At the core of his theory was the proposal that an associative memory 
+system requires an initial sparse coding stage followed by a 
+subsequent processing stage that performs associative retrieval. 
+While Marr's initial neural circuit proposed a 2 layer network consisting 
+of an input layer and an associative layer with sparse coding, later this was revised   
+into a 3 layer network consisting of an input layer, a sparse coding layer and an associative layer.
+
+Subsequent modellers refined Marr's ideas and 
+further suggested that these functions of coding and retrieval map onto the
+known anatomical and physiological properties of the 
+\ac{DG} and CA3 regions respectively. 
+The assumption is that the sparse coding stage in Marr's model could represent 
+the sparse activation of granule cells in the \ac{DG} and the 
+associative layer would represent the 
+CA3 pyramidal cells with their dense recurrent connections 
+\citep{mcnaughton-morris-87,treves-rolls-92,oreilly_hippocampal_encoding_storage_and_recall,mcclelland-mcnaughton-oreilly-95,myers-scharfman-09}.
+These models incorporate an important characteristic of the
+mature \acp{DGC}: they are heavily regulated by feedback
+inhibition, resulting in extremely sparse firing 
+and high functional selectivity \citep{jung-mcnaughton-93,chawla-et-al-05}. 
+Computer simulations demonstrate that the \ac{DG} is thereby able to improve its capacity for
+storing overlapping memory traces by generating less overlapping
+neural codes, a process that has come to be known as pattern separation
+\citep{rolls-1987, oreilly_hippocampal_encoding_storage_and_recall, rolls-treves-1998}.
+Similarly, a key component of many full hippocampal models is the many 
+recurrent connections among CA3 pyramidal cells. 
+Simulations of memory recall have demonstrated the importance of 
+these recurrent connections for accurate memory recall and pattern completion 
+\citep{mcnaughton-morris-87,treves-rolls-92,oreilly_hippocampal_encoding_storage_and_recall}.
+
+The discovery of \ac{AHN}, first in rodents \citep{origin_of_microneurons,altman-das-67} 
+and subsequently in a wide range of mammalian species 
+including humans \citep{eriksson-et-al-98}, has forced theorists to reconsider
+the computational functions of the \ac{DG}.
+Several computational models
+incorporating neurogenesis have been put forward. 
+These models postulate a
+range of functional roles for neurogenesis, including mitigating
+interference 
+\citep{chambers-potenza-hoffman-miranker-04,replacement_neurogenesis,wiskott-rasch-kempermann-06,becker-macqueen-wojtowicz-09,cuneo-quiroz-weisz-argibay-2012},
+temporal association of items in
+memory \citep{aimone-wiles-gage-06,aimone-wiles-gage-09} and 
+clearance of remote hippocampal
+memories \citep{chambers-potenza-hoffman-miranker-04,deisseroth-singla-toda-monje-palmer-malenka-04,additive_neurogenesis,weisz-argibay-2012}.
+While these different theories are not necessarily incompatible with one
+another, they make different predictions regarding the effect of temporal
+spacing. 
+
+When similar items are spaced closely in time, some models predict that
+neurogenesis should increase pattern
+integration \citep{aimone-wiles-gage-06,aimone-wiles-gage-09}.  
+By the same token, the reverse
+should be true of animals with reduced neurogenesis: they should exhibit
+impaired pattern integration, and therefore, enhanced pattern separation for closely
+spaced items. 
+Thus factors that suppress 
+neurogenesis such as stress and
+irradiation \citep{gould-tanapat-mcewen-flugge-gross-fuchs-98,wojtowicz-06}
+should impair pattern integration, resulting in 
+{\em superior} abilities to distinguish similar items that are learned
+within the same time period. 
+That said, the opposite has been observed
+empirically. 
+Rodents with reduced neurogenesis are impaired at spatial
+discriminations for closely spaced locations that are learned within the same
+session \citep{clelland-et-al-09}, while rodents with running-induced elevated neurogenesis show enhanced
+performance on spatial tests of pattern
+separation \citep{creer-romberg-saksida-vanpraag-bussey-2010}.
+Consistent with these data, humans who have
+undergone several weeks of aerobic exercise training show superior performance
+on a within-session behavioural test of pattern separation while those with
+elevated stress and depression scores show a deficit on the same task \citep{dery-pilgrim-gibala-gillen-wojtowicz-macqueen-becker-13}.
+
+When similar items are spaced widely in time, different predictions can be
+made regarding the fate of the item in remote memory versus the newly learned item.
+Most or all computational theories agree
+that neurogenesis should facilitate the encoding of new items, protecting
+against proactive interference from previously learned information.
+Empirical data support this notion. 
+For example, animals with intact levels of
+neurogenesis are able to learn to discriminate olfactory odour pairs that
+overlap with pairs learned several days ago, whereas irradiated animals with reduced
+neurogenesis show greater proactive interference on this
+task \citep{luu-sill-gao-becker-wojtowicz-smith-12}.   
+On the other hand, opposing predictions arise regarding the influence of
+neurogenesis on remote memories. 
+Some theories predict that neurogenesis should promote clearance of remote memories
+\citep{chambers-potenza-hoffman-miranker-04,deisseroth-singla-toda-monje-palmer-malenka-04,additive_neurogenesis,weisz-argibay-2012}. 
+Other theories 
+make the opposite prediction, that intact neurogenesis levels should protect
+against retroactive 
+interference of new learning on remote
+memories \citep{replacement_neurogenesis,becker-macqueen-wojtowicz-09}. 
+Consistent with the latter prediction, when animals with reduced neurogenesis
+learn overlapping visual discriminations in different sessions
+spaced several days apart, the more recently learned
+discrimination disrupts the retrieval of the earlier memory
+\citep{winocur-becker-luu-rosenzweig-wojtowicz-12}. 
+These data support a role for
+neurogenesis in minimizing retroactive interference between 
+remote and recent memories. 
+However, it is possible that neurogenesis plays dual roles in remote
+memory, protecting some hippocampal memories from 
+interference while causing other memories to decay. 
+
+How is it that \ac{AHN} can contribute to improved memory and reduced interference
+when similar items are learned within a single session as well as when items
+are learned across temporal separations of days or weeks?  
+The following thesis set out to investigate whether a single computational model of hippocampal
+coding could accommodate the role played by neurogenesis across this wide range
+of time scales. 
+We propose that the functional properties of a heterogeneous ensemble 
+of young and mature \acp{DGC} contributes to this improved memory 
+and reduced interference among similar items. 
+Studies have shown that the presence and 
+developmental trajectories of adult-generated neurons contributes 
+to the functional heterogeneity among neurons 
+within the granule layer \citep{wang-et-al-00, mcavoy-et-al-15}.
+As such, our model attempts to take this trajectory into 
+account during learning.
+In most if not all previous \ac{DG} models, these characteristics have been ignored 
+\citep{replacement_neurogenesis, chambers-potenza-hoffman-miranker-04,
+additive_neurogenesis, weisz-argibay-2012}. 
+It is known that young
+adult-generated neurons in the \ac{DG} 
+are more plastic, have less lateral inhibition, have sparser connectivity and are
+more broadly tuned than their mature counter-parts
+\citep{enhanced_synaptic_plasticity,snyder-et-al-01,temprana-et-al-2015,determinants_of_sparse_activation,neurogenesis_dictating_the_tone,
+marin-burgin-et-al-12}.
+All of these may affect
+how young \acp{DGC} learn in relation to the existing
+networks of mature
+\acp{DGC}.
+
+Among existing computational hippocampal models, those that incorporate 
+neurogenesis typically do so by
+either replacing existing neurons by re-randomizing their weights 
+\citep{replacement_neurogenesis,chambers-potenza-hoffman-miranker-04} 
+or introducing new neurons with random weights \citep{additive_neurogenesis,weisz-argibay-2012}.
+Several additional models have looked at how regulation of neurogenesis can impact learning and plasticity 
+by simulating dynamically regulated neural turnover and replacement 
+\citep{deisseroth-singla-toda-monje-palmer-malenka-04,apoptosis-neurogenesis-hebbian-networks,chambers-conroy-07}.
+Studies by Butz and colleagues include a model of synaptogenesis, providing a framework for 
+how neurogenesis regulation impacts synaptic rewiring and plasticity over varying time periods 
+\citep{lehmann-et-al-05,butz-et-al-06,butz-et-al-08}.
+However, none of these models have investigated how 
+regulation of neurogenesis and apoptosis
+contribute to learning as a continually evolving temporal process. 
+
+\section{Computational Models}
+\label{comp-model}
+Many computational approaches to modelling cognition and memory exist. 
+For example, some approaches view the mind as a system that operates on abstract 
+symbols to form complex behaviours \citep{turing-50, searle-80}. 
+These models can be used to quickly formulate theories about how high level 
+cognitive operations might interact.
+Alternatively, other models might focus on simulating the conductances of single neuron 
+membrane potentials and voltage-gated ion channels \citep{hodgkin-huxley}. 
+These models are useful when investigating the impact of changes to 
+resting membrane potentials, or intra- and extra- cellular voltages.
+\ac{ANN} models seek to simulate collections of neuron in order to learn an objective 
+function \citep {hebb, perceptrons-62, PDP-v1, PDP-v2}. 
+These are particularly useful when exploring how the organization of neural networks 
+impact learning and memory.
+\ac{ANN} models can also vary in their levels of abstraction.
+Spike time and firing based 
+models focus on simulating the temporal firing patterns among neurons, which can be useful when  
+investigating the functional role of oscillatory patterns such as theta rhythms observed in EEG studies
+\citep{integrate-fire-neurons}.
+Alternatively, other \acp{ANN} simply learn a set of weights by applying a learning rule over 
+a discrete set of independent patterns.
+Unfortunately, the more biologically plausible conductance and spiking network models require more 
+resources to compute, which reduces the size of the networks that can be simulated.
+The perspective we have taken when selecting a base model to use is best summarized by George Box, 
+who stated that "All models are wrong but some are useful" \citep{box-87}.
+For our purposes, a non-spiking \ac{ANN} should provide enough detail to explore 
+the functional impact of the hippocampal structure and interactions between layers while remaining relatively 
+computationally inexpensive to simulate, allowing us to build networks containing 
+thousands to millions of neurons.
+
+The architecture or topology of \acp{ANN} can be summarized as 
+a graph where nodes represent neurons and 
+edges, typically called weights, represent synapses. 
+As will be discussed below these graphs can 
+be acyclic or cyclic, with unidirectional or bidirectional edges. 
+\acp{ANN} learn by presenting labelled (supervised) or 
+unlabelled (unsupervised) data to the network and using a learning rule 
+to update the weights to better fit the observed data.
+These learning rules update the weights between nodes in much 
+the same way that synaptic plasticity 
+modifies the synaptic strengths between neurons in 
+biological neural systems.
+
+Donald Hebb's theory of synaptic plasticity \citep{hebb} paved the way for the majority of 
+modern learning rules, particularly unsupervised learning rules.
+The core idea was that if a neuron consistently takes part in firing 
+another neuron then some growth in one or 
+both neurons is required to make that behaviour more efficient. 
+Carla Schatz summarized it best with the phrase,
+"Cells that fire together, wire together" \citep{neurons-wire}. 
+This type of learning is often referred to as Hebbian learning 
+in the \ac{ANN} literature.
+
+\subsection{Feed Forward Neural Networks}
+
+\begin{figure}[!h]
+\centering
+\begin{subfigure}[b]{.45\textwidth}
+	\includegraphics[width=\textwidth]{Figs/Perceptron.png}
+	\caption{Single layer perceptron \ac{ANN} with a set of inputs and a single output unit.}
+	\label{fig:perceptron}
+\end{subfigure}
+\qquad
+\begin{subfigure}[b]{.45\textwidth}
+	\includegraphics[width=\textwidth]{Figs/MLP.png}
+	\caption{Multilayer perceptron with a set of inputs, hidden layer and single output unit.}
+	\label{fig:mlp}
+\end{subfigure}
+\label{fig:perceptrons}
+\caption{}
+\end{figure}
+
+One of the first connectionist models developed by Frank Rosenblatt in the late 1950s was the perceptron. 
+The perceptron model is what we would call a binary classifier today. 
+This means that it attempts to learn an 
+arbitrary function of the form $y = f(x)$, where $y$ can only be 0 or 1,
+provided a large enough training set of corresponding $x$ and $y$ values.
+The perceptron learns this function by iteratively updating a set of 
+weights $W$ between the input vector and the single binary 
+output unit, such that it minimizes the error between the observed and predicted 
+values of $y$ given $x$ \citep{perceptrons-62}. 
+A diagram of the network architecture is provided in figure ~\ref{fig:perceptron} 
+and the calculations for estimating $f(x)$ and the weight 
+updates can be seen in equations ~\ref{eq.perceptron_func} 
+and ~\ref{eq.perceptron_update} respectively.
+
+\begin{equation}
+f(x) = \sum_{i} W_{i}x_{i} \label{eq.perceptron_func}
+\end{equation}
+
+\begin{equation}
+\Delta W{i} = \epsilon(y_{\mathrm{data}} - y_{\mathrm{pred}}) \times x_{i} \label{eq.perceptron_update}
+\end{equation}
+
+In order to expand the perceptron to multiple layers, a method for sending the error signal back through 
+multiple layers was required. 
+Backpropagation \citep{backprop} is a widely used method for calculating this update 
+for each layer of weights. 
+The revised multilayer architecture and update rule are provided in figure 
+~\ref{fig:mlp} and equation ~\ref{eq.derivative_err} respectively. 
+For the full derivation of the update rule please see \citep{backprop}.
+
+\begin{equation}
+\Delta W{i,j} = -k\frac{\partial E}{\partial W_{i,j}} \label{eq.derivative_err}
+\end{equation}
+
+However, in order for the derivation of the above update rule to work a 
+differentiable activation function needs to be used 
+instead of the threshold function from the single layer perceptron. 
+The logistic function provided in 
+equation ~\ref{eq.logistic} is one of the most common activation functions that satisfy this 
+requirement and is used in other \acp{ANN} we will discuss.
+
+\begin{equation}
+f(x) = \frac{1}{1 + \mathrm{exp}(-x)} \label{eq.logistic}
+\end{equation}
+
+Autoencoders are a special case of the multilayer perceptron, 
+commonly used in modelling the hippocampus \citep{autoencoder-model, replacement_neurogenesis}.
+Autoencoders consist of at least an input layer, a hidden layer and an output layer, 
+where the input layer and the output layer are the same size.
+In this case, rather than predicting an output variable $y$, 
+the network is trying to find a latent representation of the input patterns such that it can encode and reconstruct them. 
+This network has two key advantages relevant to hippocampal modelling. 
+First, the network can be trained in an unsupervised 
+fashion, meaning that we do not need any labelled data $y$, since the network is 
+just encoding and decoding the input $x$.
+Also, since the network is simply learning to encode and decode the training 
+patterns it can be used as a simple model of 
+the associative memory in the hippocampus.
+
+Several issues arise with modelling the hippocampus as a multilayer perceptron.
+First, the training of a large multilayered network  
+using backpropagation from randomly initialized 
+weights is often slow due to the number of differential calculations needed on each 
+iteration through a training set. 
+Second, passing the derivative of the error through each 
+hidden layer results in most of the learning occurring in the last layer,
+and little change in the earlier layers. 
+This is known as the vanishing gradient problem \citep{vanishing_gradient}. 
+Put another way, the learning typically gets lost in the noise, 
+and converges on a very poor set of weights. 
+Finally, this method is considered to be less biologically 
+plausible due the requirement of non-local computations \citep{contrastive_learning}.
+
+\subsection{Recurrent Neural Networks}
+
+\Acp{RNN} are another class of \acp{ANN} which operate over cyclic graphs, 
+unlike \acp{FFNN} which are acyclic. 
+The cyclic connections within the network provide a 
+mechanism for modelling temporal dynamics and sequence learning \citep{recurrent-nn-review}. 
+Since a full literature review of \acp{RNN} is outside the scope of this thesis we 
+will only provide a very brief overview of 
+some of the common architectures relevant to hippocampal modelling, including the 
+\ac{RBM} used in the remaining chapters.
+
+The simplest method of learning in an \ac{RNN} is to reuse the backpropagation learning rule. 
+In this case, we store that unit's activation at one or more previous time steps, 
+and we simultaneously learn the weights from that unit to other units across all of these time steps.  
+This is referred to as backpropagating through time \citep{backprop-time}. 
+Unfortunately, when learning many time steps, this has the 
+same vanishing gradient issue found in large multilayer perceptrons \citep{vanishing_gradient}.
+
+Hopfield networks \citep{hopfield} are an \ac{RNN} which function as a type of 
+content addressable or associative memory network. 
+The network consists of a single 
+layer of neurons which are all symmetrically interconnected with each other, except no 
+neuron is connected to itself. 
+The network learns by clamping patterns to the units and updating the weights 
+according to equation ~\ref{eq.hopfieldnet_learning_rule}. 
+The Hebbian nature of this learning rule implies 
+that units with the same state (active or inactive) for the majority of patterns will, on average, 
+learn to attract each other with positive 
+weights and repel differing units with negative weights. 
+
+\begin{equation}
+\Delta W_{i,j} = \frac{1}{n} \sum\limits_{p=1}^n \epsilon_{i}^{p} \epsilon_{j}^{p} \label{eq.hopfieldnet_learning_rule}
+\end{equation}
+where $n$ is the number of patterns and $\epsilon_{i}^{p}$ specifies the unit state at element $i$ in pattern $p$.
+
+The activation of individual units in the network is a thresholded sum over the activations, 
+weighted by the corresponding weights of all incoming connections as 
+can be seen in equation ~\ref{eq.hopfield_unit_activation}.
+
+\begin{equation}
+s_i = 
+\begin{cases}
++1, & \text{if } \sum_{j} W_{i,j}s_j \geq \theta_{i}, \\ 
+-1, & \text{otherwise}
+\end{cases}
+\label{eq.hopfield_unit_activation}
+\end{equation}
+where $\theta_i$ is the threshold for unit $i$, and $s_i$ and $s_j$ is the 
+activation states for units $i$ and $j$ respectively.
+
+The Hopfield network's binary threshold activation function, 
+combined with appropriate assumptions about the order in which 
+units' states are updated (updated sequentially in random order) 
+can be shown to minimize the energy function in 
+equation ~\ref{eq.hopfield_energy}. 
+This can be used 
+to monitor the global state of the network at each step. 
+When a pattern is presented to the network, determining its initial state, as units' 
+states are repeatedly updated, the network's global state converges to a stable energy 
+minimum, referred to as an attractor state. 
+Furthermore, the Hebbian weight-update equation creates energy minima around 
+the stored training patterns, thereby stabilizing each pattern as an attractor state. 
+Thus, as weights in the network 
+are updated the energy value of the network will decrease. 
+The minimization of free energy within the network, combined with the 
+unsupervised and local learning rule, provides a more 
+biologically plausible model of associative memory in the hippocampus.
+
+\begin{equation}
+E = - \frac{1}{2} \sum_{i,j} W_{i,j}s_{i}s_{j} + \sum_{i} \theta_{i}s_{i} \label{eq.hopfield_energy}
+\end{equation}
+
+Despite these advantages, the Hopfield network 
+suffers from limited storage capacity. 
+For a network with $n$ units the asymptotic upper bound is $2n$ in 
+the general case. 
+While efforts to improve the storage capacity of the Hopfield network have been made, 
+other networks such as perceptrons still have better performance \citep{hopfield-memcapacity}.
+
+The Boltzmann machine \citep{boltzmann_machine} is another 
+type of \ac{RNN} which learns a set of weights so as to 
+form a probabilistic, generative model of the training data. 
+The network consists of a set of fully and reciprocally connected stochastic units, 
+partitioned into visible and hidden units.
+Weights in the network are updated based on the difference 
+between the data-dependent expectations (distribution of the dataset) 
+and the model's expectations.
+Calculation of these expectations is intractable; however, they can be 
+approximated through Gibbs sampling.
+In this approach a Markov chain is run for every training pattern to 
+approximate the data-dependent expectation, while another chain 
+is run to approximate the model's expectation.
+Unfortunately, these Markov chains still take significant time to stabilize.
+
+The \ac{RBM} simplifies the Boltzmann machine by removing 
+visible-to-visible and hidden-to-hidden connections, forming 
+a bipartite graph as seen in figure ~\ref{fig:rbm}.
+This makes the sampling of the data-dependent and model expectations 
+more tractable.
+Sampling time can be further reduced using a technique called \ac{CD}
+\citep{hinton-cd,contrastive_divergence}.
+The CD learning rule is provided in equation ~\ref{eq.rbm_learning_rule}. 
+This equation includes the same positive and negative Hebbian learning terms 
+representing the data-dependent expectation and the model's expectation. 
+Brief Gibbs sampling is still used to obtain the visible and hidden 
+unit states for the positive and negative
+terms in the learning rule.
+While figure ~\ref{fig:cd} shows a single step of Gibbs sampling, the 
+visible and hidden units could be reconstructed for many steps to achieve 
+a better approximation of the underlying distribution.
+
+\begin{figure}[!h]
+\centering
+\begin{subfigure}[b]{0.38\textwidth}
+	\includegraphics[width=\textwidth]{Figs/RBM.png}
+	\caption{The \ac{RBM} with visible and hidden units connected via bidirectional weights (w).}
+	\label{fig:rbm}
+\end{subfigure}
+\hfill
+\begin{subfigure}[b]{0.52\textwidth}
+	\includegraphics[width=\textwidth]{Figs/CD.png}
+	\caption{The positive and negative phases of the contrastive divergence learning rule.}
+	\label{fig:cd}
+\end{subfigure}
+\label{fig:rbms}
+\caption{}
+\end{figure}
+
+\begin{equation}
+\Delta W_{ij} = \epsilon((v_{i}h_{j})_{\mathrm{data}} - (v_{i}h_{j})_{\mathrm{recon}}) \label{eq.rbm_learning_rule}
+\end{equation}
+
+where $v_{\mathrm{data}}$ is the input vector and $h_{\mathrm{data}}$ is the data-driven hidden
+state generated by clamping the states of the visible units to $v_{\mathrm{data}}$ 
+and sampling the hidden units' states according to equation ~\ref{eq.sample_hidden}. 
+$v_{\mathrm{recon}}$ is a reconstruction of the input vector generated by clamping the
+states of the hidden units to the data-driven pattern $h_{\mathrm{data}}$ 
+and sampling the states of the visible units according to equation ~\ref{eq.sample_visible}. 
+$h_{\mathrm{recon}}$ is then created in the same way as $h_{\mathrm{data}}$, but by clamping the
+visible units' states to $v_{\mathrm{recon}}$. 
+
+\begin{equation}
+\Delta a_i = \epsilon({v_i}_\mathrm{data} - {v_i}_\mathrm{recon})  \label{eq.vbias_update}
+\end{equation}
+
+\begin{equation}
+\Delta b_j = \epsilon({h_j}_\mathrm{data} - {h_j}_\mathrm{recon}) \label{eq.hbias_update}
+\end{equation}
+
+In equations ~\ref{eq.sample_hidden} and ~\ref{eq.sample_visible} below 
+$a_i$ and $b_i$ represent biases which provide a mechanism for shifting the output of the sigmoid activation function, 
+similar to thresholds in other neural network models. 
+Equations ~\ref{eq.vbias_update} and ~\ref{eq.hbias_update} show that $a$ and $b$ are 
+updated using the same positive and negative terms used in updating $W$. 
+Figure ~\ref{fig:cd} provides a visual representation of this 
+learning procedure. 
+
+\begin{equation}
+p(v_{i}=1 | h) = \sigma (a_{i} + \sum_{j} h_{j}w_{ij}) \label{eq.sample_visible}
+\end{equation} 
+
+\begin{equation}
+p(h_{j}=1 | v) = \sigma (b_{j} + \sum_{i} v_{i}w_{ij}) \label{eq.sample_hidden}
+\end{equation}
+
+We can see from equation ~\ref{eq.rbm_learning_rule}
+that the positive Hebbian term 
+associates data-driven input and hidden state vectors, while the negative
+Hebbian term tries to  
+``unlearn'' the association between the corresponding reconstructed visible and
+hidden state vectors.  
+Theoretically, the learning procedure should converge when its
+internal reconstructions of the training patterns exactly match the
+corresponding data-driven states.  
+In general, an \ac{RBM} model's reconstructions of the training patterns are
+obtained by alternatingly sampling hidden and visible unit states that 
+are nearby data-driven states using the model's bottom-up and top-down weights respectively. 
+
+Like the Hopfield network, the \ac{RBM} utilizes a local and unsupervised learning rule, which also 
+minimizes the free energy within the network \citep{hopfield-rbm-similarities}. 
+However, the presence of distinct visible and hidden 
+units, along with the ability to stack \acp{RBM}, provides greater memory capacity. 
+Furthermore, the ability to leave the \ac{RBM} unclamped, in a generative state, may provide a way of 
+simulating imagination and dreaming along with memory reconstruction. 
+It is for these reasons that the \ac{RBM} is used as the base \ac{ANN} for our model.
+
+Before concluding, we would like to mention \ac{LSTM} networks as a type of \ac{RNN} 
+that has had significant success on sequence and time series learning problems
+\citep{lstm-sequence,lstm-timeseries}.
+\Acp{LSTM} use the concept of a memory cell, also called an \ac{LSTM} block. 
+This block feeds a set of inputs through a squashing function 
+to read, write and keep gates, which control long and short term storage within the network. 
+Once again, backpropagation can be used to send an error signal back 
+through the memory cells.
+Interestingly, by continuously feeding the error 
+signal back through the gate weights within the same block, the vanishing 
+gradient problem can be avoided \citep{lstm-orig}. 
+While \acp{LSTM} are better designed for 
+sequence learning discussed in the later chapters of this thesis, this was not our primary path of 
+investigation and as such the simpler \ac{RBM} model satisfied the requirements for our base 
+associative memory model.
+
+For the remainder of this thesis we will being using the \ac{RBM} to explore 
+the role of young \acp{DGC} in rapid encoding and recall within the hippocampus.
+\Cref{chap:ng-paradox} presents a novel model of the \ac{DG}, which incorporates 
+the developmental trajectory of adult-born \acp{DGC}. 
+\Cref{chap:learn-dep-ng} 
+adds a mechanism for modelling learning dependent regulation of neurogenesis and 
+apoptosis. 
+Finally, \cref{chap:full-model} presents a combined \ac{DG} and CA model 
+in order to explore the role of young \acp{DGC} on full hippocampal encoding and recall.
+

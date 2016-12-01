@@ -1,0 +1,397 @@
+\chapter{Neurogenesis in a full hippocampal model}
+\label{chap:full-model}
+
+As discussed in \cref{chap:ng-paradox}, a full hippocampal circuit model 
+will be required to explore the functional impact of young vs mature 
+\acp{DGC} on hippocampal learning, particularly when 
+investigating the performance changes on memory recall (pattern completion) and 
+sequence replay tasks. 
+Similarly, the generative characteristics of the \ac{RBM} 
+combined with this stacked architecture provide a method of 
+simulating imagination and dreaming along with memory reconstruction. 
+Using an existing stacked \ac{RBM} approach to represent the 
+\ac{DG} and CA layers in a full hippocampal model \citep{becker-hinton-SFN-abstract, hippocampal-trbm},
+we will investigate how our neurogenesis model performs on cued recall tasks.
+
+\section{Methods}
+\subsection{\acp{CRBM}}
+
+Recall from \cref{chap:intro}, that the CA3 layer in the hippocampus has many 
+recurrent collaterals which is believed to help with associative and 
+temporal learning. 
+While we are primarily investigating the impact of \ac{AHN} on 
+cued recall tasks, any model of the CA3 will 
+require a way of encoding sequences of data. 
+While recurrent neural networks such as \ac{LSTM} networks 
+\citep{lstm-orig} and \acp{LSM} \citep{lsm} have proven effective for 
+learning such data \citep{lstm-sequence,lstm-timeseries}, 
+several techniques already exist for our base \ac{RBM} model.
+
+ \begin{figure}[!hp]
+\centering
+\begin{subfigure}[b]{.4\textwidth}
+	\includegraphics[width=\textwidth]{Figs/TRBM}
+	\caption{Restricted \ac{TRBM} diagram with feed forward hidden-to-hidden layer connections.}
+	\label{fig:trbm}
+\end{subfigure}
+\qquad\qquad
+\begin{subfigure}[b]{.35\textwidth}
+	\includegraphics[width=\textwidth]{Figs/CRBM}
+	\caption{\ac{CRBM} diagram with a set of autoregressive unidirectional weights (B) connect the 
+		conditional visible units to the hidden layer and another set of weights (A) connect the 
+		conditional visible units to the standard visible ones.
+	}
+	\label{fig:crbm}
+\end{subfigure}
+\label{fig:temporal-rbms}
+\caption{}
+\end{figure}
+
+The \ac{TRBM} extends the \ac{RBM} by training a sequence of \acp{RBM}, 
+one for each time step in a lookback, using feed forward visible-to-hidden 
+and hidden-to-hidden connections from previous \ac{RBM} time steps \citep{trbm}. 
+A common restriction on the \ac{TRBM} involves using only hidden-to-hidden 
+temporal connections to speed up contrastive divergence \citep{trbm-restricted}. 
+A diagram of the \ac{TRBM} architecture is provided in Figure ~\ref{fig:trbm}
+
+The \ac{CRBM} extends the \ac{RBM} by adding visible-to-visible and visible-to-hidden
+autoregressive weights from other (or conditional) visible inputs \citep{crbm-2007}.
+The idea is that the \ac{RBM}'s visible units can be conditioned on other known data.
+This approach has proven useful in modelling timeseries data, such as video processing, 
+where the visible input can be conditioned on the same input from 
+previous timesteps \citep{crbm-2007}.
+That being said, the \ac{CRBM} is not limited to conditioning on these historical observations.
+For example, an electricity provider may want to model the conditional dependence between 
+weather and load, to better predict load requirements from weather predictions.
+This could be achieved with a \ac{CRBM} by conditioning the visible load observations on 
+weather forecasts for temperature, humidity, wind speed \& direction, etc.
+The flexibility of our conditional inputs will prove useful later in this chapter.
+A diagram of the \ac{CRBM} is in figure ~\ref{fig:crbm}. 
+Subsequently, the updated learning rule is provided in 
+equation ~\ref{eq.crbm_W}, and the update rules for the autoregressive 
+weights $A$ and $B$ can be seen in equations ~\ref{eq.crbm_A} 
+\& ~\ref{eq.crbm_B} respectively.
+
+\begin{equation}
+\Delta W_{ij} = \sum_{k} \epsilon((v_{i,t}h_{j,t})_{\mathrm{data}} - (v_{i,t}h_{j,t})_{\mathrm{recon}}) \label{eq.crbm_W}
+\end{equation}
+
+\begin{equation}
+\Delta A_{k,i} = \sum_{t} \epsilon((v_{i,t}v_{k,<t})_{\mathrm{data}} - (v_{i,t}v_{k,<t})_{\mathrm{recon}}) \label{eq.crbm_A}
+\end{equation}
+
+\begin{equation}
+\Delta B_{k,j} = \sum_{t} \epsilon((h_{j,t}v_{k,<t})_{\mathrm{data}} - (h_{j,t}v_{k,<t})_{\mathrm{recon}}) \label{eq.crbm_B}
+\end{equation}
+
+For our purposes, the \ac{CRBM} is the most flexible and simplest method for 
+learning sequence data with little computational overhead. 
+While the \ac{CRBM} 
+has been an effective method of learning sequence data, it is generic enough 
+that we can also use it to describe other conditional relationships. 
+At the end of \cref{chap:ng-paradox} we acknowledged that 
+the bidirectional weights of the \ac{RBM} are less biologically plausible, given that there 
+is no evidence that the \ac{DG} has backprojections to the \ac{EC}. 
+By making the \ac{DG} layer a \ac{CRBM} we can avoid this issue.
+If we invert our \ac{DG} layer such that our bidirectional weights represent the mossy fibres and 
+backprojections between the \ac{DG} and CA3, then we can use the autoregressive visible-to-hidden weights 
+to represent \ac{EC} to \ac{DG} connections.
+By doing so, the \ac{DG} will be learning patterns of activation in the CA3 by conditioning on the \ac{EC}.
+This provides an \ac{RBM} based \ac{DG} model that 
+correctly accounts for the directionality of the connectivity 
+within the hippocampal structure.
+Since we will not be simulating sequence learning in our experiments, our model will not 
+be conditioning on previous timesteps.
+However, this would a promising addition for future studies.
+
+\subsection{Stacking}
+Training of the multilayer model depicted in ~\ref{fig:hippocampal_model} 
+begins by training the CA3 \& CA1 layer on the \ac{EC} input. 
+The \ac{EC} input 
+is then transformed through this layer and clamped, along with the initial \ac{EC} 
+patterns, as input to the \ac{DG} layer. 
+The \ac{DG} layer then learns the CA 
+output conditioned on the initial \ac{EC} patterns. 
+Similarly, cued recall  
+testing is triggered by transforming the degraded \ac{EC} input to the 
+CA3 \& CA1 layer and passing that through to the \ac{DG} layer, which 
+generates a new activation 
+to the CA3 \& CA1 layer. 
+Finally, the CA3 \& CA1 generates the completed 
+patterns from those activations.
+
+\begin{figure}[!hp]
+\begin{center}
+\includegraphics[width=.4\textwidth]{Figs/hippocampal-model}
+\end{center}
+\caption{
+As a simplification of the circuitry presented in \cref{chap:intro}, the 
+\ac{DG}, modelled as a \ac{CRBM}, 
+receives conditional input from the \ac{PP} and visible input from 
+CA3 backprojections. 
+Likewise, the bidirectional weights from the 
+backprojections to represent the mossy fibres. 
+The CA3 \& CA1 have been collapsed 
+into 1 \ac{CRBM} with visible units representing 
+input from the \ac{EC} and optional conditioning 
+on previous timesteps. 
+This architecture is very similar to one proposed by Becker and Hinton 
+\citeyearpar{becker-hinton-SFN-abstract} using \acp{TRBM} rather than \acp{CRBM}.
+}
+\label{fig:hippocampal_model}
+\end{figure}
+
+\subsection{Experiments}
+
+Returning to our primary thesis in this chapter, what role does the developmental trajectory 
+of young \acp{DGC} have on full hippocampal learning and memory?
+To investigate this, we used a similar approach to the one from \cref{chap:ng-paradox}.
+We designed a set of experiments to monitor proactive and retroactive 
+memory interference over short and long time scales.
+This was achieved by training our models iteratively on highly similar patterns with the expectation 
+that new similar patterns would be more difficult to learn (proactive interference) and 
+distally learned similar patterns would be more easily forgotten (retroactive interference).
+Noisy versions of 5 prototype classes were used to represent the highly similar sequences, 
+intended to cause interference.
+Unlike in \cref{chap:ng-paradox}, where the Hamming distance between the input and 
+reconstruction was used to measure encoding, the distance between the source prototype 
+and the reconstruction was used to measure cued recall.
+If the model is able to reconstruct the prototype with a high degree of accuracy, 
+despite having been trained on many variations of the prototype, we can infer 
+that it has learned the general features of the training set rather than just memorizing exemplars. 
+We compare our hippocampal model with and without neurogenesis to observe how the 
+developmental trajectory discussed in \cref{chap:ng-paradox} impacts cued recall tasks in 
+our full hippocampal model.
+Our hypothesis is that our neurogenesis model will have better performance on cued recall 
+tasks, with reduced proactive and retroactive memory interference across short 
+and long time spans.
+
+The models simulated in this experiment used contrastive divergence with 1 step Gibbs sampling 
+on each \ac{RBM} layer in the stack. 
+A learning rate of 0.0025 was used for all layers lacking neurogenesis and a value 
+between 0.0025 and 0.1 was used for \ac{DG} layer of model that included neurogenesis. 
+For all sparse coding models, the expected probability of 
+activation for each hidden unit (representing the target sparseness of mature \acp{DGC}) was set to 0.05. 
+This is a very conservative constraint as previous models and empirical studies have this set 
+at around an order of magnitude lower, ~0.004 or 0.4\% \citep{barnes-et-al-90,jung-mcnaughton-93}. 
+The initial network started with 200 \ac{EC} inputs, 200 CA hidden units and 1000 \ac{DG} 
+hidden units in order to roughly match the relative numbers of \ac{EC}, CA and \ac{DG} neurons 
+observed in rodents, as in previous models \citep{oreilly_hippocampal_encoding_storage_and_recall}.
+However, for models that included neurogenesis, the \ac{DG} hidden layer was allowed to grow and shrink according 
+to our regulated neurogenesis and apoptosis method described in \cref{chap:learn-dep-ng}.
+Since our dataset does not directly represent temporal sequences, the 
+recurrent connections in the CA layer are ignored. 
+For all experiments, each model was trained on mini-batches of 5 training patterns at a time, 
+with 1 sample from each parent class as described below. 
+In order to simulate rapid one-shot learning, only 1
+iteration through the training set was taken.
+Similar to Orielly and McClelland \citeyearpar{oreilly_hippocampal_encoding_storage_and_recall}, we set the
+expected probability of activation of each unit in the training and test patterns (representing the activation
+level of each \ac{EC} input unit) as 0.1
+
+Each simulated model was trained on a set of binary patterns 
+representing input from the \ac{EC}. 
+These patterns were randomly generated, with ten percent  
+of the elements of each pattern being active (set to 1.0) and the remainder
+inactive (set to 0.0).  
+The patterns were created as random variations on a base
+set of prototypes, so as to create patterns that had varying degrees of
+similarity. Initially, five binary seed patterns were created, representing
+prototype patterns from 5 different classes.
+For each of these classes, 10 additional overlapping prototypes were generated
+by randomly resetting 20\% percent of the  
+original pattern. 
+From these 55 prototypes (representing 5 classes and 11 subclasses per class), 
+1200 patterns were generated and partitioned into 1000 training patterns and 200 test patterns.
+Each of these patterns were created by 
+randomly resetting another 5\% of the elements in one of the 
+subclass patterns.
+
+\section{Results}
+
+The same session tests showed improved cued recall performance 
+for models with neurogenesis. 
+Even without neural aging or turnover, we can reduce interference in both the 
+during and post training tests shown in 
+Figures ~\ref{fig:samesession_recall}A and ~\ref{fig:samesession_recall}B 
+respectively, as well as the summary graph in Figure ~\ref{fig:samesession_recall}D.
+Again, this was expected since the initial ages of the hidden units were randomly selected, 
+allowing the encoded characteristics of our young neurons to provide the necessary advantage.
+Unsurprisingly, figure ~\ref{fig:samesession_recall}C shows higher 
+\ac{DG} hidden unit overlap for models with neurogenesis, as the 
+more active young \acp{DGC} are less selective in their firing patterns.
+Interestingly, the improved performance for the neurogenesis 
+models appears to be magnified relative to the single \ac{EC}-\ac{DG} 
+layer network in \cref{chap:ng-paradox}.
+
+\begin{figure}[!hp]
+\begin{center}
+\includegraphics[width=.8\textwidth]{Figs/samesession_recall}
+\end{center}
+\caption{Performance of the models 
+with and without neurogenesis on within-session cued recall tests. 
+The models were trained sequentially on 11 group of 90 patterns, 
+and tested on noisy versions of these training patterns 
+after each group to test proactive interference and after all groups had completed to test retroactive interference. 
+\textbf{(A)} Proactive interference for cued recall accuracies during training. 
+\textbf{(B)} Retroactive interference for cued recall accuracies on each 
+group after training to test retroactive interference. 
+\textbf{(C)} The relationship between post training recall accuracy with 
+\ac{DG} hidden unit activation overlap. 
+\textbf{(D)} The distribution of post training accuracy over all groups.
+}
+\label{fig:samesession_recall}
+\end{figure}
+
+The multi session tests showed similar improvement to cued recall performance. 
+Once again, figure ~\ref{fig:multisession_recall}D shows the model with 
+neurogenesis outperforming the model without, and 
+figure ~\ref{fig:multisession_recall}B shows a 
+recency effect and reduced proactive interference from the neurogenesis model. 
+However, the use of neural maturation and turnover in the multi session 
+tests provided less benefit to overall performance than expected. 
+Again, the improved performance for the neurogenesis 
+models appears to be magnified relative to the single \ac{EC}-\ac{DG} 
+layer network in \cref{chap:ng-paradox}.
+Interestingly, Figure ~\ref{fig:multisession_figure}C shows a further overlap in 
+\ac{DG} hidden layer activation.
+This is likely due to the increased population of young \acp{DGC} relative to their 
+mature counter parts, using our regulated neurogenesis method from 
+\cref{chap:learn-dep-ng}.
+
+\begin{figure}[!hp]
+\begin{center}
+\includegraphics[width=.8\textwidth]{Figs/multisession_recall}
+\end{center}
+\caption{ Performance of the models 
+with and without neurogenesis on across-session cued recall tests. 
+The models were trained sequentially on 11 group of 90 patterns, 
+and tested on noisy versions of these training patterns 
+after each group to test proactive interference and after all groups had completed to test retroactive interference. 
+\textbf{(A)} Proactive interference for cued recall accuracies during training. 
+\textbf{(B)} Retroactive interference for cued recall accuracies on each 
+group after training to test retroactive interference. 
+\textbf{(C)} The relationship between post training recall accuracy with 
+\ac{DG} hidden unit activation overlap. 
+\textbf{(D)} The distribution of post training accuracy over all groups.
+}
+\label{fig:multisession_recall}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lllll}\toprule
+Simulation & Models & Means & Confidence Interval & Significant\\\midrule
+SameSession &&&\\ 
+& SparseRBM vs Neurogenesis & (0.635, 0.81) & (0.148, 0.203) & *\\
+\\
+MultiSession &&&\\
+& SparseRBM vs Neurogenesis & (0.645, 0.811) & (0.144, 0.19) & *\\
+\end{tabular}
+}
+\caption{
+Post training summary statistics for both simulations. 
+Mean accuracies of each pair of models and 99\% 
+bootstrapped confidence intervals around the difference between means are shown;  *s indicate 
+statistically significant differences (those with confidence intervals which do not include 0).
+The confidence intervals were generated by calculating the difference in
+mean performance of pairs of models across 20 repeated simulations with
+different randomly generated training and test sets.
+From these 20 repeated simulations, we generated 10,000 bootstrapped resamples,
+to obtain bootstrapped estimates of the distributions of the mean differences}
+\label{Tab:stats}
+\end{table}
+
+
+\section{Discussion}
+
+In this chapter we investigated the functional impact of \ac{AHN}  
+on cued recall tasks within the hippocampal structure. 
+To begin, we built a full hippocampal model by stacking two \acp{CRBM}. 
+The first \ac{CRBM} layer represented the CA3 \& CA1 regions by accepting 
+input from the \ac{EC}.
+While not utilized in our experiments, this CA3 \& CA1 layer can be conditioned on 
+previous \ac{EC} input, representing the recurrent collateral connections in the CA3, 
+and allowing for learning of sequence data.
+The second \ac{CRBM} layer represented the \ac{DG} using the same neurogenesis 
+model developed throughout this thesis, but extended to a \ac{CRBM}, which is
+trained off the CA3 \& CA1 hidden layer output 
+and conditioned on the \ac{EC} input. 
+This modification to our neurogenesis model from the previous 
+chapters addresses 1 of the 3 problems discussed at the end of \cref{chap:ng-paradox}.
+
+While the same evaluation method from \cref{chap:ng-paradox} was used, we 
+measured the Hamming distance between the reconstruction and the 
+source prototype rather than the reconstruction of the input pattern itself 
+in order to test cued recall.
+Given that the evaluation and training methods from \cref{chap:ng-paradox} 
+were largely reused, our simulation suffers the same limitations as previously discussed.
+Specifically, changing the \ac{RBM} hyperparameters by 
+more than an order of magnitude is likely to yield different results.
+Similarly, since our experiments were explicitly designed to produce interference between 
+training sessions, we would not expect to find the same results in other real-world datasets 
+without appropriate preprocessing.
+
+The primary finding from these experiments is that our neurogenesis model, 
+specifically with the presence of young \acp{DGC}, helps with cued recall tasks 
+in a full hippocampal model, in much the same way that we 
+found they helped with rapid encoding in \cref{chap:ng-paradox}. 
+Myers and Scharfman \citeyearpar{CA3_DG_backprojections} argue 
+that the backprojections from the CA3 to the \ac{DG} are vital for 
+learning within the \ac{DG}.
+These backprojections are represented in our model by our bidirectional weights 
+between the CA layer and the \ac{DG} layer, which is simply conditioned 
+on \ac{EC} input. 
+We believe it is these bidirectional connections which allow the young 
+\acp{DGC} to interact with the full memory encoding, storage and recall cycle 
+and contributing the improved cued recall performance seen in 
+figures ~\ref{fig:samesession_recall} and ~\ref{fig:multisession_recall}.
+
+While we synchronously propagated the training and test patterns 
+through the CA layer to the \ac{DG}, future experiments should 
+explore continuously training each layer, 
+reconstructing and even generating input as asynchronous 
+processes. 
+In the hippocampal circuitry, the \ac{EC} sends 
+information via the \ac{PP} to both the \ac{DG} and 
+CA3 concurrently, which should produce a kind of race 
+condition between the \ac{DG} and the CA3 layers. 
+Our model simplifies this by requiring information from the \ac{EC} to 
+be processed in the CA layer in order to send the teaching signal, 
+via backprojections, to the \ac{DG}. 
+In reality, these backprojections from the CA3 to 
+the \ac{DG} are likely being activated concurrently with the mossy fibres 
+from the \ac{DG} to the CA3.
+This would fit with existing theories of sequence and 
+reverse sequence replay within the hippocampal structure \citep{lisman-99}. 
+While outside the scope of this thesis, a promising use for such a model 
+would be to simulate sequence replay using real place cell, grid cell and time cell recordings 
+\citep{place-cells, place-grid-cells, place-grid-models, time-cells}.
+
+Finally, we demonstrated in this chapter that our neurogenesis model from 
+\cref{chap:ng-paradox} shows the same improved performance on cued recall tasks 
+in a full hippocampal circuit. 
+However, we did not demonstrate what advantage the CA3 \& CA1 layer provides 
+in memory encoding and recall. 
+Does it help in reducing proactive and retroactive interference 
+even without the presence of neurogenesis and young \acp{DGC}?
+Along with conditioning on previous input in order to model the CA3 recurrent collaterals, 
+future experiments should identify the independent role the 
+CA3 \& CA1 layer plays on learning and memory.
+
+In summary, we extended our neurogenesis model, described 
+in the previous chapters, to include the full hippocampal
+circuit. 
+We found models with neurogenesis had better cued recall performance 
+than models without. 
+These results indicate that \ac{AHN} in the \ac{DG} may play 
+an important role in recall, as well as rapid encoding. 
+Future work in this area should address the following questions: 
+1) How does this model behave on 
+sequence data by conditioning on previous input patterns in CA3 \& CA1 layer? 
+2) What advantage does the CA3 \& CA1 layer play in memory encoding and recall tasks 
+within this full hippocampal architecture?
+3) How well does this model simulate real-world datasets?
+
+

@@ -1,0 +1,647 @@
+
+\chapter{Neurogenesis paradoxically decreases both pattern separation and memory interference}
+\label{chap:ng-paradox} 
+
+In this chapter, we present a novel computational model of the \ac{DG} incorporating the
+developmental trajectory of adult-born \acp{DGC}, using a modified version of the
+\ac{RBM} to model the neural circuitry and learning
+equations of \ac{DGC}. 
+As discussed in \cref{chap:intro}, an \ac{RBM} is a type of neural network model consisting of 
+1 layer of visible and 1 layer of hidden units, with each visible unit reciprocally connected
+to each hidden unit. 
+In our model, a single \ac{RBM} (not stacked RBMs) will represent 
+the \ac{EC} input and \acp{DGC} with its visible and hidden units respectively.
+As the model \acp{DGC} undergo development, they become
+progressively less plastic, more sparse in their firing, and more densely
+connected to their entorhinal inputs. 
+We demonstrate how these properties can
+explain the importance of adult-generated \acp{DGC} at both short and long time
+scales. 
+
+In the model described here, the maturational trajectory of adult born \acp{DGC}
+will be loosely based on mouse data, for \acp{DGC} 
+from the third week of maturation onward. 
+It is at about age 3-4 weeks that adult born \acp{DGC} have established synaptic
+afferent and efferent connections and are able to fire action potentials \citep{granule_cell_maturation}.
+As compared to more mature neurons, \citet{enhanced_synaptic_plasticity} have shown that these young 
+neurons have a higher input resistance, lower capacitance, lower activation threshold and 
+a slower membrane time constant.
+As a result, 3-4 week old \acp{DGC} can be described as being more excitable, 
+while having smaller and slower 
+action potentials \citep{enhanced_synaptic_plasticity,snyder-et-al-01}. 
+Moreover, the young neurons are more sparsely connected to their \ac{PP} 
+inputs from the \ac{EC} relative to mature
+\acp{DGC} \citep{neurogenesis_dictating_the_tone}.
+From weeks five through eight the young neurons undergo a
+gradual decline in synaptic plasticity and are increasingly regulated by
+feedback inhibition \citep{temprana-et-al-2015}.
+By the eighth week, the physiological properties of the adult-generated \acp{DGC} are
+largely indistinguishable from that of existing mature 
+\acp{DGC} \citep{temprana-et-al-2015,neurogenesis_dictating_the_tone}.
+
+\section{Methods}
+
+In this section, we propose a novel approach to expressing neurogenesis in
+an \ac{ANN} model of the \ac{DG}. 
+While several replacement and
+additive models of neurogenesis have looked at how new neurons affect
+learning \citep[e.g.][]{replacement_neurogenesis, additive_neurogenesis}, 
+few models have considered the full range of unique properties of \ac{AHN}
+including the developmental trajectory of 
+of adult-generated neurons: changes in plasticity, connectivity, excitability
+and survival versus apoptosis. 
+The primary contribution of this work is to provide a computational framework
+within which all of these factors can be manipulated, 
+differentiating the role of young versus mature \acp{DGC} in memory, and the
+progression from one to the other. 
+In the computational model described
+here, we use the \ac{RBM} 
+\citep{hinton-cd, smolensky-86, freund-haussler-92} architecture and learning
+procedure. 
+
+As discussed in \cref{chap:intro}, \acp{RBM} are a type of generative, 
+associative neural network model commonly used in deep learning applications \citep[see
+e.g.][]{deep_belief_nets,nair-hinton-09}. 
+Our approach to expressing the neural trajectory of 
+young \acp{DGC} in an \ac{RBM} is to incorporate additional constraints into the learning equation, 
+such as a dynamic learning rate and sparsity penalties. 
+While there are several advantages to \acp{RBM} as discussed in \cref{chap:intro},
+it is important to note that the use of these constraints is
+not limited to \acp{RBM} and could easily be applied to other
+types of neural network models (eg. multilayer perceptrons, autoencoders, \acp{RNN}, etc).
+
+\subsection{Sparsity}
+
+In our simulations of neurogenesis, we take into consideration both sparse
+coding and sparse connectivity. 
+Sparse coding means that very few strongly activated neurons respond to a given event. 
+This helps to improve pattern separation as it minimizes the probability of
+overlap in the model's internal representation of highly 
+similar input patterns. 
+As noted in \cref{chap:intro}, extreme sparse coding is observed in
+mature DG granule cells, but not in less mature adult-generated neurons.  
+In our model, we simulate sparse coding by incorporating 
+a sparsity cost constraint into the learning objective. 
+Our sparse coding cost term is the average squared difference between each 
+hidden unit's average activation and its target probability of activation \citep{nair-hinton-09}. 
+By taking the derivative of this cost term with respect to the weights, we
+obtain an added component to the learning equation that adjusts the weights so
+as to penalize units whose activation deviates from a target level of
+sparseness. 
+The relative importance of this sparse coding term increases with the 
+age of the neurons, to simulate the increased degree of connectivity with
+inhibitory interneurons of mature DGCs.  
+In the updated learning equation below, $q_j$ is the mean of our sampled hidden activation 
+for hidden unit $j$ from equation 
+\ref{eq.sample_hidden} and $p$ is our target activation probability.
+
+\begin{equation}
+\Delta W_{ij} = \epsilon ((v_{i}h_{j})_{\mathrm{data}} - (v_{i}h_{j})_{\mathrm{recon}}) - \mathrm{cost}(q_j - p) \label{eq.sparse_rbm}
+\end{equation}
+
+Sparse connectivity describes the level of interconnectedness between the
+visible and hidden layers.  
+As mentioned earlier, the degree of inter-connectivity is another property
+that changes as the young \acp{DGC} mature. 
+
+We simulate the maturational evolution of increased sparse coding and
+decreased sparse connectivity as follows. 
+In the case of sparse coding we vary the weight on the sparsity cost for each hidden
+unit so that it is smaller for young neurons and larger for their mature
+counterparts. 
+To impose a sparse connectivity constraint, a binary matrix 
+is used as a connectivity mask for the weight matrix. 
+For young \acp{DGC}, only 30\% percent of their connections were 
+randomly unmasked (non-zero), to simulate low connectivity. 
+Thus, a young \ac{DGC} is initially connected to relatively few ECCs.  
+As the hidden units
+mature, the number of non-zero visible-to-hidden  
+connections in the connectivity matrix for that hidden unit is increased
+probabilistically. 
+At the end of each weight update, 
+the weight matrix is multiplied by this connectivity mask in order to maintain
+the \`\`disconnected'' links and weights of zero. 
+
+\subsection{Neuron Growth}
+
+Our model makes the assumption that young neurons are more plastic, have less lateral  
+inhibition (simulated via our sparse coding cost rather than lateral connections) 
+and are more sparsely
+connected than their mature 
+counterparts, in accordance with biological data
+\citep{enhanced_synaptic_plasticity, oswald-et-al-08, marin-burgin-et-al-12, wang-et-al-00}. 
+For simplicity, we assume that each of  
+these characteristics follows a temporal growth curve that can be described
+with some permutation of the Gompertz  
+function \citep{gompertz}. 
+The Gompertz function has been used to model growth in a variety of applications ranging from 
+modelling bacterial growth in biology to product demand in economics \citep{bacterial_growth, economic_growth}. 
+
+\begin{equation}
+g(t) = e^{-e^{-st}} \label{eq.gompertz}
+\end{equation}
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=.4\textwidth]{Figs/gompertz}
+\end{center}
+\caption{ Gompertz function where $s$ is set to 5 and $t$ is between $-1$ and $1$.}
+\label{fig:gompertz}
+\end{figure}
+
+The Gompertz function in equation \ref{eq.gompertz} defines a sigmoid-like
+growth curve, where $t$ describes the time step and $s$ describes the shape or steepness of the function
+as can be seen in figure \ref{fig:gompertz}. 
+For our purposes, $t$ is bounded 
+between $-1$ and $1$ and the $s$ is always set to 5.
+To model young \ac{DGC} growth characteristics in the \ac{RBM},
+each hidden neuron has its own set of parameters defining its current learning
+rate and sparsity constraints. 
+Additionally, each hidden unit has a time parameter representing its age.
+At each simulated unit time interval, the age of a hidden unit is increased,
+and its constraint parameters are updated as follows. 
+The learning rate, which
+can be thought of as a neuron's plasticity level, is defined as $1 - g(t)$
+normalized to lie between 0.0025 and 0.1. Inversely, our sparsity cost can simply  
+be taken from $g(t)$ and normalized to lie between 0 and our initial sparsity
+cost of 0.9. 
+Given these variable properties,   
+the learning rule can be redefined as
+\begin{equation}
+\Delta W_{ij} = \epsilon_j ((v_{i}h_{j})_{\mathrm{data}} - (v_{i}h_{j})_{\mathrm{recon}})) - (\lambda_jW_{ij}) - \mathrm{cost}(q_j - p) \label{eq.growth}
+\end{equation}
+where the learning rate $\epsilon$, weight decay $\lambda$ and sparsity cost
+terms are now each weighted by dynamically changing vectors of values rather
+than static hyperparameters. 
+
+\subsection{Neural Turnover}
+
+It is difficult to estimate the rate at which adult-generated neurons undergo
+apoptosis versus survival and maturation into adult \acp{DGC}. 
+These processes are
+governed by many factors 
+\citep[see, e.g.,][]{apoptosis-review,why-neurons-die,cecchi-et-al-01,cameron-mckay-01} 
+and are not completely understood.  
+Generally, apoptosis among healthy neurons tends to be activity and age dependent, 
+such that the older a neuron is, the more likely it is to undergo apoptosis, 
+whereas greater involvement in neural coding protects a neuron from cell death 
+\citep{why-neurons-die, cecchi-et-al-01} and a significant number of 
+new \acp{DGC} survive to adulthood \citep{cameron-mckay-01}. 
+Using these observations, we formulate a rule for determining whether a given
+neuron will survive or undergo apoptosis 
+based on its age and its contribution to learning and memory. 
+To assess a unit's contribution to learning and memory, we define two terms: 
+its specificity and average synaptic strength.
+To assess stimulus specificity, we calculate the standard
+deviation of each hidden unit's incoming weights, a quantity we refer to
+hereafter as its \`\`differentiation".  
+The justification is that hidden units with equal weight to all visible units
+will be less effective at differentiating input patterns. 
+Similarly, we calculate the average 
+absolute value of the those incoming weights, to assess synaptic strength. 
+Combining the differentiation and synaptic strength penalty terms, 
+we are penalizing hidden units with incoming weights that are 
+all very similar and close to zero. 
+We rank each hidden neuron based on a weighted average of its 
+synaptic strength, differentiation and age with equation ~\ref{eq.turnover}. 
+Neurons within the lowest 5\% of this ranking undergo simulated apoptosis by
+having their age reset to 0 and weights reset to random initial values (or
+set to 0 in the case of bias weights). 
+
+\begin{equation}
+Z_i = (\alpha\mathrm{Strength}_i + \beta\mathrm{Differentiation}_i + \gamma(1 - \mathrm{Age}_i)) / (\alpha + \beta + \gamma) \label{eq.turnover}
+\end{equation}
+where
+\begin{itemize}
+\item $\mathrm{Strength}_i$ is the average of the weights from all visible units to a given hidden unit $i$. 
+\item $\mathrm{Differentiation}_i$ is the standard deviation of the visible weights to hidden unit $i$
+\item $\mathrm{Age}_i$ is our recorded age for the hidden unit $i$
+\item $\alpha$, $\beta$ \& $\gamma$ are coefficients for modifying the
+relative importance of the Strength, Differentiation and Age terms. 
+For our simulations these are set to 0.2, 0.65 and 0.15 respectively. 
+\end{itemize}
+
+\subsection{Experiments}
+
+Returning to our primary thesis in this chapter, what role does the developmental trajectory 
+of young \acp{DGC} have on learning and memory in the \ac{DG}?
+To investigate this we designed a set of experiments to monitor proactive and retroactive 
+memory interference over short and long time scale.
+This was achieved by training our models iteratively on highly similar patterns with the expectation 
+that new similar patterns would be more difficult to learn (proactive interference) and 
+similar distally learned patterns would be more easily forgotten (retroactive interference).
+Noisy versions of 5 prototype classes were used to represent the highly similar (but different) 
+patterns, intended to cause interference.
+Interference was measured by using the Hamming distance between the input and the
+reconstructed patterns.
+We began by comparing an \ac{RBM} with and without sparse coding to confirm that the 
+sparsity constraint successfully reduces both proactive and retroactive memory interference.
+In Simulation 2, our neurogenesis model with and without sparse connectivity was compared 
+with the base \ac{RBM} with a static sparsity constraint to observe how our development trajectory 
+impacts memory interference.
+
+All models simulated in the experiments reported here used contrastive divergence with 1 step Gibbs sampling on a 
+single layer \ac{RBM} as described in \cref{chap:intro}.  
+A learning rate of 0.0025 was used for all models lacking neurogenesis and a value 
+between 0.0025 and 0.1 was used for all models that included neurogenesis. 
+For all sparse coding models the expected probability of 
+activation for each hidden unit (representing the target sparseness of mature \acp{DGC}) was set to 0.05. 
+This is a very conservative constraint as previous models and empirical studies have this set 
+at around an order of magnitude lower, ~0.004 or 0.4\% \citep{barnes-et-al-90,jung-mcnaughton-93}. 
+All models had 200 visible units and 1000 
+hidden units in order to roughly match the relative numbers of \ac{EC} and \ac{DG} neurons respectively
+observed in rodents, as in previous models \citep{oreilly_hippocampal_encoding_storage_and_recall}.
+For all experiments, each model was trained on mini-batches of 5 training patterns at a time, with 
+1 sample from each parent class as described below. 
+In order to simulate rapid one-shot learning, only 1
+iteration through the training set was taken.
+Similar to Orielly and McClelland \citeyearpar{oreilly_hippocampal_encoding_storage_and_recall}, we set the
+expected probability of activation of each unit in the training and test patterns (representing the activation
+level of each \ac{EC} input unit) to be 0.1.
+
+Each simulated model was trained on a set of binary patterns 
+representing input from the \ac{EC}. 
+These patterns were randomly generated, with ten percent  
+of the elements of each pattern being active (set to 1.0) and the remainder
+inactive (set to 0.0).  
+The patterns were created as random variations on a base
+set of prototypes, so as to create patterns that had varying degrees of
+similarity. Initially, five binary seed patterns were created, representing
+prototype patterns from 5 different classes.
+For each of these classes, 10 additional overlapping prototypes were generated
+by randomly resetting 20\% percent of the  
+original pattern. 
+From these 55 prototypes (representing 5 classes and 11 subclasses per class), 
+1200 patterns were generated and partitioned into 1000 training patterns and 200 test patterns.
+Each pattern was created by 
+randomly resetting another 5\% of the elements in one of the 
+subclass patterns.
+By generating our own dataset in this way, we were able to control the similarity between patterns 
+and the subsequent levels of interference produced between training sessions.
+
+While the training and testing scenarios varied between experiments, our evaluation of performance remained 
+the same. 
+As an estimate of the model's ability to recognize a given test pattern, the
+test pattern was presented to the model and the Hamming distance
+between the input pattern and the model's reconstruction of that test pattern was calculated.
+The Hamming distance was used to measure reconstruction accuracy because of its simplicity, 
+as can be seen in equation \ref{eq.hamming}. 
+From there the percent match was calculated using 
+equation \ref{eq.match}, where $l$ is the length of the $V_{data}$ and $V_{recon}$. 
+This metric serves as an 
+approximation of the formal log-likelihood cost function for the Boltzmann model; however, 
+it is appropriate to use an approximation to the true cost function as there are several 
+other approximations such as brief gibbs sampling and small mini-batches inherent to the \ac{RBM} model. 
+
+\begin{equation}
+D(V_{\mathrm{data}}, V_{\mathrm{recon}}) = \sum_{i=1}^{n} |(V_{\mathrm{data}_{i}} - V_{\mathrm{recon}_{i}})| \label{eq.hamming}
+\end{equation}
+
+\begin{equation}
+M(V_{\mathrm{data}}, V_{\mathrm{recon}}) = 1 - ( D(V_{\mathrm{data}}, V_{\mathrm{recon}}) / l  ) \label{eq.match}
+\end{equation}
+
+In Simulation 1, we evaluated the
+contribution of sparse coding (without neurogenesis) to associative 
+memory in the \ac{DG} model. 
+Thus, we compared 
+the accuracy of the sparse coding \ac{RBM} with the base \ac{RBM} lacking a sparse
+coding constraint. 
+We hypothesized that the sparse coding \ac{RBM} would perform better, 
+particularly for encoding highly similar patterns.
+We evaluated this and all other models on both proactive and retroactive
+interference. 
+Learning a pattern that is highly
+similar to one the model previously learned is a source of proactive
+interference, potentially making it more difficult to encode the current
+pattern. 
+Additionally, learning the current pattern could interfere
+retroactively with the model's ability to retrieve a previously learned
+overlapping pattern. 
+Thus each model was trained on groups of patterns, consisting 
+of all training patterns from 5 of the 55 prototypes (90 patterns for a training set of 1000), 
+one from each class, and immediately 
+tested with the corresponding test patterns on its accuracy at reconstructing these patterns. 
+As mentioned above, these patterns were presented to the model in mini-batches of 5 (1 example per class), 
+and the training and test patterns had noise added to them from their prototypes by randomly resetting 5\% of the elements. 
+It was then trained on another group of 90 patterns with one prototype selected from each class, 
+with each successive group of 90 patterns overlapping with previously learned patterns. 
+After learning the entire set of 1000 patterns consisting of 11 groups of 90, the model was 
+finally tested on its ability to reconstruct all test patterns from all previously learned groups to test 
+retroactive interference.
+
+In Simulation 2, the sparsely coded \ac{RBM} with
+neurogenesis, with and without sparse connectivity, was compared to the sparse
+\ac{RBM}. 
+We were particularly interested in how the neurogenesis model would
+perform at encoding and recognizing similar patterns when they were
+encountered within the same learning session versus across different learning
+sessions spaced more widely in time. 
+We therefore compared the performance of
+the various models across 2 conditions: 
+1) same-session testing in which   
+the neurogenesis models had no neural turnover or growth,
+2) multi-session testing which had both neural growth and neural turnover.
+The same-session testing condition was created with no simulated passage of
+time after training on each successive group of 90 patterns. 
+For multi-session training, the passage of
+time between each block of 90 patterns was simulated by 
+incrementing the neuron age parameter for all hidden units. 
+As discussed previously, neural growth
+was simulated by incrementing the age parameter and recomputing the learning
+rate and sparsity cost using the Gompertz function for each hidden unit. 
+Similarly, to simulate neural turnover, we
+ranked the performance of each hidden unit based on the weighted average of the synaptic strength, 
+differentiation and age as described earlier, and reinitialized the lowest 5\%. 
+Both neural turnover and growth were performed between sessions (or groups of 90 patterns) when we incremented 
+the age parameter of the hidden units.
+
+Our hypothesis for same-session testing was that the neurogenesis models would perform better 
+than the sparsely coded \ac{RBM} without neurogenesis due to the presence of a 
+few young more plastic neurons. 
+Further, because the available pool of young excitable neurons would be
+constant for same-session learning, making it difficult for the model to
+generate distinctive traces for similar items experienced within the same
+context, we predicted that sparse connectivity would be particularly
+important for same-session learning.
+For multi-session testing, given that a new pool of young neurons would be
+available at each learning session, we hypothesized that the neurogenesis models would
+perform even better than they did for same-session testing. 
+Further, allowing some of the young neurons to mature and forcing less useful neurons
+to be replaced was predicted to lead to improved reconstruction
+accuracy with lower proactive and retroactive interference. 
+
+\section{Results}
+
+The results from initial tests comparing the sparse coding \ac{RBM} with the base \ac{RBM} 
+show a significant improvement in overall reconstruction accuracy, as can be seen in both 
+the during and post training tests shown in figures ~\ref{fig:base_figure}A and ~\ref{fig:base_figure}B 
+respectively, as well in the summary graph in figure ~\ref{fig:base_figure}D.  
+Similarly, the sparse coding was shown to be effectively helping to increase pattern separation, 
+as can be seen by the reduced pattern overlap of the hidden unit activations in figure ~\ref{fig:base_figure}C. 
+It is noteworthy that the overlap for the base \ac{RBM} was less than 30\% and the slow 
+increase in performance during training suggests that it was able to learn the sparse 
+representation of the dataset to some extent, but not as quickly as its sparsely constrained counterpart.
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=.8\textwidth]{Figs/base_figure}
+\end{center}
+\caption{ Simulation 1: performance of the models with and without sparse coding on 
+within-session pattern reconstruction tests. 
+The models were trained sequentially on 11 groups of 90 patterns, and tested on noisy 
+versions of these training patterns after each group to test proactive interference and 
+after all groups had completed to test retroactive interference. 
+\textbf{(A)} Shows proactive interference for input reconstruction accuracies during training. 
+\textbf{(B)} Shows retroactive interference for input reconstruction accuracies on each 
+group after training to test retroactive interference. 
+\textbf{(C)} Shows the relationship between post training reconstruction accuracy with hidden unit activation overlap. \textbf{(D)} Shows the distribution of post training accuracy over all groups.}
+\label{fig:base_figure}
+\end{figure}
+
+The same session tests showed improved accuracy for both neurogenesis models, 
+even without neural aging or turnover. 
+This was expected since the initial ages of the hidden units were randomly selected, 
+allowing the encoded characteristics of our young neurons to provide the necessary advantage. 
+The sparse connectivity appears to provided a further advantage for same session testing 
+as we can see in figure ~\ref{fig:samesession_figure}D. 
+Interestingly, figure ~\ref{fig:samesession_figure}C shows that the neurogenesis models 
+have more overlap among hidden unit activation than the normal sparse \ac{RBM}, 
+which demonstrates that the neurogenesis models are providing an opportunity to 
+have slightly less sparse activations due to the young neurons. 
+Another interesting pattern can be seen in figure ~\ref{fig:samesession_figure}B, 
+which shows a kind of recency effect found in numerous memory studies (e.g., \cite{serial_position_effect}).
+At the same time, figure ~\ref{fig:samesession_figure}A shows the neurogenesis models have reduced 
+proactive interference. 
+The increase in accuracy on subsequent groups of patterns suggests that the neurogenesis models may be better at distinguishing novel and common elements to each group of patterns.
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=.8\textwidth]{Figs/samesession_figure}
+\end{center}
+\caption{ Simulation 2: performance of the models with and without neurogenesis and 
+sparse connectivity on within-session pattern reconstruction tests. 
+The models were trained sequentially on 11 groups of 90 patterns, and tested on 
+noisy versions of these training patterns after each group to test proactive interference 
+and after all groups had completed to test retroactive interference. 
+\textbf{(A)} Shows proactive interference for input reconstruction accuracies during training. 
+\textbf{(B)} Shows retroactive interference for input reconstruction accuracies on each group 
+after training to test retroactive interference. 
+\textbf{(C)} Shows the relationship between post training reconstruction accuracy with hidden unit activation overlap. \textbf{(D)} Shows the distribution of post training accuracy over all groups.}
+\label{fig:samesession_figure}
+\end{figure}
+
+The multi session tests showed similar improvement as expected. 
+Figure ~\ref{fig:multisession_figure}D once again shows the neurogenesis 
+models outperforming the sparse \ac{RBM} models. 
+We can also see from figure ~\ref{fig:multisession_figure}B a 
+recency effect and reduced proactive interference from the neurogenesis models. 
+However, the use of neural maturation and turnover in the multi session 
+tests provided less benefit to overall performance than expected. 
+While the non-sparsely connected neurogenesis model did see about
+a 1\% increase in performance over the same session tests, 
+the sparsely connected neurogenesis model saw no improvement and 
+did about the same as its non-sparse counterpart. 
+Interestingly, figure ~\ref{fig:multisession_figure}C shows that the 
+increased overlap for the sparsely connected model is no longer 
+present for our multi session tests and instead the overlap for the non-sparsely 
+connected neurogenesis model has increased. 
+This latter point suggests that the sparse connectivity and neural turnover 
+work in equilibrium with each other depending on the learning demands required. 
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=.8\textwidth]{Figs/multisession_figure}
+\end{center}
+\caption{ Simulation 2: performance of the models with and without neurogenesis and 
+sparse connectivity on across-session pattern reconstruction tests. 
+The models were trained sequentially on 11 groups of 90 patterns, and 
+tested on noisy versions of these training patterns after each group to test 
+proactive interference and after all groups had completed to test 
+retroactive interference. 
+\textbf{(A)} Shows proactive interference for input reconstruction accuracies during training. 
+\textbf{(B)} Shows retroactive interference for input reconstruction accuracies on each 
+group after training to test retroactive interference. 
+\textbf{(C)} Shows the relationship between post training reconstruction accuracy with 
+hidden unit activation overlap. 
+\textbf{(D)} Shows the distribution of post training accuracy over all groups.}
+\label{fig:multisession_figure}
+\end{figure}
+
+\begin{table}[!h]
+\centering
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lllll}\toprule
+Simulation & Models & Means & Confidence Interval & Significant\\\midrule
+1 - SameSession &&&\\
+& \ac{RBM} vs SparseRBM & (0.844, 0.884) & (0.03, 0.054) & *\\ 
+\\
+2 - SameSession &&&\\ 
+& SparseRBM vs Neurogenesis & (0.883, 0.938) & (0.035, 0.057) & *\\
+& SparseRBM vs Neurogenesis Sparsely Connected & (0.883, 0.938) & (0.04, 0.065) & *\\
+& Neurogenesis vs Neurogenesis Sparsely Connected & (0.93, 0.938) & (0.006, 0.01) & *\\
+\\
+2 - MultiSession &&&\\
+& SparseRBM vs Neurogenesis & (0.883, 0.934) & (0.04, 0.06) & *\\
+& SparseRBM vs Neurogenesis Sparsely Connected & (0.883, 0.932) & (0.037, 0.058) & *\\
+& Neurogenesis vs Neurogenesis Sparsely Connected & (0.934, 0.932) & (-0.004, 0.0) &\\
+\end{tabular}
+}
+\caption{
+Post training summary statistics for the 3 simulations. 
+Mean accuracies of each pair of models and 99\% 
+bootstrapped confidence intervals around the difference between means are shown;  
+*s indicate statistically significant differences (those with confidence intervals which do not include 0).
+The confidence intervals were generated by calculating the difference in
+mean performance of pairs of models across 20 repeated simulations with
+different randomly generated training and test sets.
+From these 20 repeated simulations, we generated 10,000 bootstrapped resamples,
+to obtain bootstrapped estimates of the distributions of the mean differences}
+\label{Tab:stats}
+\end{table}
+
+In summary, the results from the neurogenesis tests showed an improvement over 
+the sparse coding \ac{RBM} in all cases with and without sparse connectivity. 
+That being said, while the models with sparse connectivity did show better performance on the same session 
+scenario, they showed no significant improvement for multisession tests. 
+This suggests that the sparse connectivity of young neurons provides improved 
+performance on pattern separation and completion tasks in the short term, but 
+provide little benefit for longer term applications. 
+Table ~\ref{Tab:stats} shows the mean values and confidence intervals from the 
+post training tests for each simulation. 
+
+\section{Discussion}
+
+The main goal of this study was to investigate whether the unique characteristics of young 
+adult-born \acp{DGC} during their maturation period, such as increased synaptic plasticity and 
+reduced lateral inhibition \citep{enhanced_synaptic_plasticity, marin-burgin-et-al-12}, 
+contribute to learning novel, highly overlapping patterns.
+We were particularly interested in the potential contribution of
+these various properties of young neurons to interference reduction when
+similar patterns are encountered at short vs. long time spacings.
+
+Previous modelling studies have shown that the sparse coding caused by lateral inhibition within
+the \ac{DG} results in improved pattern separation \citep{oreilly_hippocampal_encoding_storage_and_recall} 
+which is useful for distinguishing highly similar patterns. 
+We reaffirmed this in simulation 1, where we compared the reconstruction
+of highly similar patterns for an \ac{RBM} with and without a sparse coding constraint. 
+Similar to previous studies, we found significantly better performance 
+for the \ac{RBM} using a sparse coding constraint.
+
+Our main finding is that the models with a mixture of young and old 
+neurons did not learn a neural code that maximized pattern separation, 
+and yet they outperformed models with sparser, less overlapping 
+codes but lacking neurogenesis. 
+This may seem counter-intuitive in light of the findings of 
+simulation 1: for models lacking neural turnover, those with a sparse coding constraint 
+were superior. 
+An alternative explanation for these results is that the degree of pattern 
+separation achieved by the control model (sparsely coded \ac{RBM} lacking neurogenesis) 
+was so high (less than 0.05\% pattern overlap in some cases; see 
+figure ~\ref{fig:samesession_figure}C) that it would be impossible 
+for models without such a sparseness constraint on the young 
+neurons to achieve the same degree of pattern separation. 
+However, a closer examination 
+of the distribution of pattern separation scores versus model performance makes this explanation 
+seem unlikely. 
+The \ac{RBM} has the flexibility to learn any neural code that is optimal for pattern 
+reconstruction, ranging from a sparse code to a highly distributed code. 
+In fact, the sparse \ac{RBM} 
+and the \ac{RBM} with neurogenesis produced codes with varying degrees of pattern separation in 
+different cases (see figure ~\ref{fig:samesession_figure}C), 
+and there was considerable overlap in the distributions of pattern 
+separation scores for the two models. 
+In cases where the sparse \ac{RBM} 
+achieved the highest degree of pattern separation 
+(the bottom tail of the distribution in figure ~\ref{fig:samesession_figure}C), 
+the sparse \ac{RBM} actually performed most poorly. 
+In other cases where the sparse \ac{RBM} converged 
+to somewhat less sparse codes, performance appeared to be asymptotically approaching 
+about 95\% (the top end of the distribution in figure ~\ref{fig:samesession_figure}C). 
+On the other hand, models with neurogenesis achieved 
+performance approaching 100\%, in spite of a wide 
+range of pattern separation scores; in some situations the neurogenesis models achieved 
+comparable pattern separation to the sparse \ac{RBM} but still produced superior performance. 
+These results support our main conclusion that a heterogeneous model with a balance of 
+mature more sparsely firing neurons and younger neurons with higher firing rates achieves 
+superior pattern encoding relative to a purely sparse code. 
+While our simulations suggest that the addition of younger, more hyperactive neurons strictly
+leads to reduced pattern separation, McAvoy et al \citeyearpar{mcavoy-et-al-15} suggest that 
+young neurons may counter this effect via potent feedback inhibition of mature granule cells. 
+The latter mechanism could thus compensate for the increased activity in the young 
+neuronal population by inducing greater sparsity in the mature population.
+The net result of this could be a homeostatic maintenance of the overall 
+activity level in the dentate gyrus \citep{mcavoy-et-al-15}.
+In either case, pattern separation is obviously 
+not a strict requirement for accurate neural coding. 
+The more distributed code learned by 
+the models with a pool of younger neurons seems to offer a good compromise between 
+high pattern separation and high plasticity.
+
+Sparse connectivity was found to be
+critical when the model attempted to encode similar patterns encountered
+within a single training session. 
+In this case, the model would not have the
+opportunity to generate a set of new neurons between encoding of one similar
+pattern and the next, and it therefore had to rely on sparse connectivity of
+the young neurons to generate distinct responses to similar patterns. 
+Across a longer temporal separation, some of the young neurons would have matured while
+there would be additional young, more plastic neurons available to encode
+successive similar patterns. 
+Thus, these additional properties of greater
+plasticity and higher activation were more important for separating patterns
+that were encountered across longer time scales. 
+While these results shed light on the ways in which different features of
+young neurons may contribute to memory, there are several limitations to our
+models that will be addressed in the remaining chapters.
+
+While our results are relatively robust to changes in the chosen training and 
+evaluation methods, several limitations exist.
+First, the values of our hyperparameters were largely selected based on 
+Geoffrey Hinton's \citetitle{training_rbms} \citeyearpar{training_rbms}.
+While our results are robust to minor variations in the learning rate, decay and sparsity 
+parameters, we do not expect changes over an order of magnitude to yield the same results.
+For example, changing the learning rates for \acp{DGC} from (0.0025-0.1) to 
+(0.3-0.5) would likely not produce the same results presented here.
+Second, since our experiments were explicitly designed to produce interference between 
+training sessions, we would not expect to find the same results in other real-world datasets 
+without appropriate preprocessing.
+In particular, groups of highly similar patterns would need to be identified and organized into 
+training sessions appropriately, so as to produce the same interference properties 
+present in our synthetic dataset.
+
+The current model using the \ac{RBM} requires reciprocal connectivity 
+between the input and output layers, whereas the known anatomy of the dentate gyrus 
+does not support this architecture; dentate granule cells do not project back to 
+the \ac{EC}. 
+However, in an elaborated version of this 
+model that will be developed in \cref{chap:full-model} \citep{becker-hinton-SFN-abstract}, 
+we incorporate the reciprocal connections between the CA3 and the \ac{DG}
+\citep{CA3_DG_backprojections}, and between the CA3 and the \ac{EC}, 
+thus providing a natural fit of the stacked \ac{RBM} architecture as described in \cref{chap:intro} to that of 
+the hippocampal circuit. 
+This full hippocampal circuit model will be required to explore the 
+functional impact of young vs mature \acp{DGC} on hippocampal learning, particularly when 
+investigating the performance changes on memory recall (pattern completion) and sequence replay tasks.  
+Similarly, the generative characteristics of the \ac{RBM} combined with this stacked 
+architecture provide a method of simulating imagination and dreaming, along with memory reconstruction.
+
+Finally, we modelled neurogenesis and apoptosis as one operation with the simplified
+replacement approach. 
+In \cref{chap:learn-dep-ng}, our model will be extended to 
+treat neurogenesis and apoptosis as two 
+independent processes for regulating the population of \acp{DGC}. 
+We propose creating a hybrid additive 
+and replacement model in which neurogenesis can be up or down regulated in order to better 
+investigate the role of neurogenesis in pattern separation and completion tasks over 
+varying time spans. 
+
+In summary, our results suggest that the developmental trajectory of adult-born 
+\acp{DGC} may be important in explaining the role of young neurons 
+in interference reduction at both short and long time scales. 
+Interestingly, even though the young neurons decrease sparseness 
+and pattern separation, they play a critical role in mitigating both retroactive and proactive interference. 
+In order to address the limitation of the current model \cref{chap:learn-dep-ng} will expand it 
+into a hybrid additive \& replacement model and \cref{chap:full-model} will explore the 
+functional impact of \ac{DGC} maturation on full 
+Hippocampal learning tasks.

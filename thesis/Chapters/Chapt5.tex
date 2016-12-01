@@ -1,0 +1,168 @@
+\chapter{Conclusion}
+\label{chap:conclusion}
+
+In this thesis we investigated the functional impact of \ac{AHN} on 
+rapid memory encoding and recall in the hippocampal structure, 
+focusing on the developmental trajectory of adult-generated neurons. 
+Young \acp{DGC} are more plastic, have less lateral inhibition, sparser connectivity and are
+more broadly tuned than their mature counter-parts
+\citep{enhanced_synaptic_plasticity,snyder-et-al-01,temprana-et-al-2015,determinants_of_sparse_activation,neurogenesis_dictating_the_tone,
+marin-burgin-et-al-12}.
+However, it is unclear what impact these unique neurophysiological properties 
+have on learning and memory.
+Do these neurons contribute to learning novel and highly overlapping patterns, or 
+do they help in forgetting old ones?
+
+We chose to use \ac{RBM} based methods for our \ac{DG} and full hippocampal 
+models. 
+As previously discussed, despite other common neural network models, 
+the \ac{RBM} has several useful properties 
+which require little computational overhead. 
+Unlike most other types of 
+\ac{ANN} models, \acp{RBM} can be stacked and trained sequentially to 
+form deep multilayer networks without relying on back-propagation. 
+In contrast, deep networks trained by the error back-propagation learning procedure 
+\citep{lecun-85,rumelhart-hinton-williams-86}
+suffer from the vanishing gradient problem \citep{vanishing_gradient}. 
+Furthermore, these models are considered to be less biologically 
+plausible due the requirement of non-local computations \citep{contrastive_learning}. 
+While deep multilayer networks can be pretrained using 
+stacked autoencoders \citep{stacked-autoencoders},
+bypassing the vanishing gradient problem, the autoencoder 
+still relies on backpropagation.
+The \ac{RBM} has the additional advantage of forming a generative
+model of the data, allowing it to generate novel input patterns from the same data
+distribution that it was trained on. 
+It thereby has the potential to simulate
+cognitive processes such as memory reconstruction and consolidation \citep{kali-dayan-02},
+as well as imagining the future and prospective memory. 
+Given that our objective was to see how 
+the variability in plasticity, lateral inhibition and connectivity 
+among a heterogenous pool of young and mature \acp{DGC} 
+impacts memory and interference, the \ac{RBM} satisfied our requirements.
+
+We added additional constraints to the \ac{RBM} learning rule to 
+simulate the unique properties of young \acp{DGC} as they mature.
+The learning rule modifications that we introduced are not specific to the \ac{RBM} and could easily be
+combined with other neural network learning rules. 
+For example, autoencoders,  
+multilayer perceptrons and recursive neural networks can all use the same variability 
+in learning rate, weight decay and sparsity constraints based on the age of the neurons 
+in the \ac{DG} layer. 
+
+While our findings from \cref{chap:ng-paradox} showed that models with a mixture 
+of young and old neurons did not learn a neural code 
+that maximized pattern separation, they did outperform models with sparser, 
+less overlapping codes, but lacking neurogenesis. 
+While these results may seem counter-intuitive given that our sparse coding model 
+performed better than a base \ac{RBM}, it may suggest that a heterogeneous 
+model with a balance of mature more sparsely firing neurons and younger 
+neurons with higher firing rates achieves superior pattern encoding 
+relative to a purely sparse code. 
+McAvoy et al \citeyearpar{mcavoy-et-al-15} suggest that young neurons 
+may counter their increased activity via potent feedback inhibition of mature granule cells. 
+The latter mechanism could thus compensate for the increased activity in the young 
+neuronal population by inducing greater sparsity in the mature population.
+The net result of this could be a homeostatic maintenance of the overall 
+activity level in the \ac{DG} \citep{mcavoy-et-al-15}.
+Furthermore, Neher et al \citeyearpar{neher-15} claim that Hebbian learning 
+in the \ac{DG} does not fully support its function as a pattern separator.
+In either case, pattern separation is obviously 
+not a strict requirement for accurate neural coding, and the standard 
+model that the \ac{DG} and \ac{AHN} only function to help with pattern separation
+during memory encoding should be revisited. 
+For now, we can say that the more distributed code learned by 
+the models with a pool of younger neurons seems to offer a good compromise between 
+high pattern separation and high plasticity.
+
+In order to address the limitations of our replacement approach to neurogenesis, 
+discussed in \cref{chap:ng-paradox}, we presented a novel method for modelling 
+learning dependent regulation of neurogenesis in \cref{chap:learn-dep-ng}. 
+Using changes in the pseudo-likelihood, 
+a metric for monitoring learning in \acp{RBM}, the number of \acp{DGC} to add 
+or remove over time was easily regulated. 
+We demonstrated how this method 
+adapts to the relative complexity of the dataset being learned and how introduction 
+of new novel patterns can successfully trigger apoptosis and neurogenesis functions 
+in order to adapt. 
+While these are only preliminary results, we believe that this approach 
+is both more realistic and clearly reconciles the existing additive and replacement approaches 
+to modelling neurogenesis.
+
+In order to investigate how our neurogenesis model behaves on cued recall tasks, we 
+built a full hippocampal model as described in \cref{chap:intro} to include the 
+CA3 \& CA1 for associative memory. 
+In \cref{chap:full-model}, we showed how our \ac{EC}-\ac{DG} \ac{RBM} could be 
+stacked below a CA3-CA1 layer, creating a multilayer model,
+and extended it to handle this requirement. 
+Interestingly, by including the CA3 sublayer, 
+we were forced to extend our base \ac{RBM} network to condition on other visible inputs with the \ac{CRBM}. 
+The \ac{CRBM} extension allowed us to rephrase the connections from the \ac{EC} to the \ac{DG} as 
+unidirectional autoregressive connections rather than our original bidirectional ones, which better fit 
+the existing biological evidence. 
+This stacked architecture 
+is very similar to one proposed by Becker and Hinton \citeyearpar{becker-hinton-SFN-abstract} 
+which used \acp{TRBM} instead of \acp{CRBM}.
+Fox and Prescott \citeyearpar{hippocampal-trbm} extended their \ac{TRBM}
+model to use a learning method that resembles particle filtering.
+They focused on sequence learning on a maze tasks 
+but did not use a real-world dataset.
+Furthermore, they used hand set \ac{EC}-\ac{DG} weights and did 
+not account for the CA3-\ac{DG} backprojections or neurogenesis.
+In order to test the updated neurogenesis model on 
+cued recall, we re-ran the same experiment from \cref{chap:ng-paradox}.
+However, instead of 
+testing the accuracy of the model to reconstruct the presented patterns, we presented degraded patterns 
+and asked the network to produce the original source. 
+Our preliminary results showed a significant 
+improvement on cued recall tasks, specifically, the 
+properties identified in \cref{chap:ng-paradox} appear 
+to be magnified in the stacked architecture.
+
+While this thesis has presented a novel model of \ac{AHN} in a full hippocampal network, 
+which in turn has provided several insights about how young \acp{DGC} contribute to rapid 
+memory encoding and recall within the hippocampus, there are still many more avenues of 
+investigation that can be taken.
+The model of the young adult-born \ac{DGC} maturation presented here 
+looked specifically at changes in synaptic plasticity and 
+lateral inhibition during the cell's developmental trajectory; however, it does not take into account temporal 
+changes in action potential kinetics \citep{enhanced_synaptic_plasticity, marin-burgin-et-al-12}. 
+This temporal component would be a valuable contribution for future work, particularly when modelling 
+spatio-temporal learning and sequence replay \citep{sequence_replay}.
+Furthermore, while the full hippocampal model presented in \cref{chap:full-model} 
+supported recurrent CA3 connections by conditioning on previous time steps, 
+we did not utilize them in our experiments. 
+Modelling of these recurrent CA3 connections would also be useful when simulating 
+spatio-temporal learning and sequence replay \citep{sequence_replay}.
+Throughout this thesis, we have noted the ability of our \ac{RBM} based model to 
+simulate imagination and dreaming by running the network in an unclamped 
+generative mode.
+While these generative properties were not explored in our experiments, 
+interesting questions arise around the impact of young \acp{DGC} on memory 
+reactivation.
+For example, recent studies have shown that targeted stimulation of \acp{DGC} can induce 
+context-specific fear expression \citep{memory_reactivation, memory_false_activation}, but 
+it remains unclear how the presence of young \acp{DGC} impact this expression.
+We believe the generative properties of our full hippocampal 
+neurogenesis model could provide insights on these types of interactions.
+Finally, it would be interesting to see how this model performs at simulating 
+real-word datasets such as place cell, grid cell and time cell recording 
+\citep{place-cells, place-grid-cells, place-grid-models, time-cells}
+
+In summary, we have developed a novel hybrid additive \& replacement 
+neurogenesis model that accounts for the developmental trajectory of 
+adult-born \acp{DGC}. 
+Our results suggest that this developmental 
+trajectory may be important in explaining the role of young neurons in 
+reducing memory interference at both short and long time scales. 
+Interestingly, even though the young neurons decrease sparseness and 
+pattern separation, they play a critical role in mitigating both 
+retroactive and proactive interference. 
+Future work in this area should 
+address the following important questions: 
+1) How does our model perform on temporal sequence learning? 
+2) How do changes in the temporal dynamics of action potentials between young and mature 
+\acp{DGC} impact these results? 
+3) How well does this model fit real-world recordings 
+such as place and grid cell firing behaviour?
+ 

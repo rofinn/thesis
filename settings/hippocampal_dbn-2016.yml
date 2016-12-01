@@ -1,0 +1,97 @@
+---
+- name: StudySamesession
+  description: Look at the impact of neurogenesis in same session recall tasks
+  root_dir: experiments/tmp
+  iterative: true
+  shared_settings:
+    ca:
+      hidden: 200
+      lr: 0.01
+      sparsity_target: 0.1
+      sparsity_cost: 0.9
+      steps: 0
+
+  dataset:
+    type: generated
+    length: 200
+    train_size: 1000
+    test_size: 200
+    classes: 5
+    subclasses: 10
+    subclass_dev: 0.2
+    dev: 0.05
+    activity: 0.1
+
+  evaluator:
+    type: generative
+    sorted: false
+    completion: true
+
+  models:
+    - type: hippocampaldbn
+      name: SparseRBM
+      dg:
+        type: base
+        hidden: 1000
+        sparsity_target: 0.05
+        sparsity_cost: 0.9
+        lr: 0.01
+        n_epochs: 1
+    - type: hippocampaldbn
+      name: Neurogenesis
+      dg:
+        type: neurogenesis
+        hidden: 1000
+        hidden_calc: regulated
+        sparsity_target: 0.05
+        sparsity_cost: 0.9
+        n_epochs: 1
+
+- name: StudyMultisession
+  description: Look at the impact of neurogenesis in multi session recall tasks
+  root_dir: experiments/tmp
+  iterative: true
+  shared_settings:
+    ca:
+      hidden: 200
+      lr: 0.01
+      sparsity_target: 0.1
+      sparsity_cost: 0.9
+      steps: 0
+
+  dataset:
+    type: generated
+    length: 200
+    train_size: 1000
+    test_size: 200
+    classes: 5
+    subclasses: 10
+    subclass_dev: 0.2
+    dev: 0.05
+    activity: 0.1
+
+  evaluator:
+    type: generative
+    sorted: false
+    completion: true
+    age: true
+
+  models:
+    - type: hippocampaldbn
+      name: SparseRBM
+      dg:
+        type: base
+        hidden: 1000
+        sparsity_target: 0.05
+        sparsity_cost: 0.9
+        lr: 0.01
+        n_epochs: 1
+    - type: hippocampaldbn
+      name: Neurogenesis
+      dg:
+        type: neurogenesis
+        hidden: 1000
+        hidden_calc: regulated
+        sparsity_target: 0.05
+        sparsity_cost: 0.9
+        n_epochs: 1

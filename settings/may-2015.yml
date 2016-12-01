@@ -1,0 +1,220 @@
+# # All results for experiments should be saved in the specified
+# # folder under the experiment name which should contain
+# # the following:
+# #  * An INFO file containing a copy of the settings for the experiment
+# #  * A snapshots folder with statistics-{{model}}.jld for each model
+# #  * A results folder containing per model results and combined summaries.
+
+---
+# - name: BaseSameSessionRandom
+#   description: Same session training comparing RBM with SparseRBM
+#   root_dir: experiments/tmp
+#   iterative: false
+
+#   preprocessing:
+#     type: simulated
+#     length: 200
+#     train_size: 1000
+#     test_size: 200
+#     classes: 5
+#     subclasses: 10
+#     subclass_dev: 0.2
+#     dev: 0.05
+#     activity: 0.1
+
+#   evaluation:
+#     type: generative
+#     train_iter: 1
+#     batch_size: 5
+#     sorted: false
+#     checkpoints: false
+
+#   models:
+#     - type: base
+#       name: RBM
+#       hidden: 1000
+#       momentum: 0.0
+#     - type: sparse
+#       name: Sparse-RBM
+#       hidden: 1000
+#       momentum: 0.0
+#       expected_prob: 0.05
+#       sparsity_cost: 0.9
+
+- name: BaseSameSession
+  description: Same session training comparing RBM with SparseRBM
+  root_dir: experiments/tmp
+  iterative: true
+
+  preprocessing:
+    type: simulated
+    length: 200
+    train_size: 1000
+    test_size: 200
+    classes: 5
+    subclasses: 10
+    subclass_dev: 0.2
+    dev: 0.05
+    activity: 0.1
+
+  evaluation:
+    type: generative
+    train_iter: 1
+    batch_size: 5
+    sorted: false
+    checkpoints: false
+
+  models:
+    - type: base
+      name: RBM
+      hidden: 1000
+      momentum: 0.0
+    - type: sparse
+      name: SparseRBM
+      hidden: 1000
+      momentum: 0.0
+      expected_prob: 0.05
+      sparsity_cost: 0.9
+
+- name: StudySameSession
+  description: Same session training comparing SparseRBM vs Sparse-NG vs sparse-connectivity-NG
+  root_dir: experiments/tmp
+  iterative: true
+
+  preprocessing:
+    type: simulated
+    length: 200
+    train_size: 1000
+    test_size: 200
+    classes: 5
+    subclasses: 10
+    subclass_dev: 0.2
+    dev: 0.05
+    activity: 0.1
+
+  evaluation:
+    type: generative
+    train_iter: 1
+    batch_size: 5
+    sorted: false
+    checkpoints: false
+
+  models:
+    - type: sparse
+      name: SparseRBM
+      hidden: 1000
+      momentum: 0.0
+      expected_prob: 0.05
+      sparsity_cost: 0.9
+    - type: sparse-ng
+      name: Neurogenesis
+      hidden: 1000
+      momentum: 0.0
+      turnover: 0.1
+      growth_rate: 0.2
+      expected_prob: 0.05
+      sparsity_cost: 0.9
+    - type: sparse-ng
+      name: Neurgenesis_Sparsely_Connected
+      hidden: 1000
+      momentum: 0.0
+      turnover: 0.05
+      growth_rate: 0.1
+      expected_prob: 0.05
+      sparsity_cost: 0.9
+      sparse_conn: true
+
+# - name: StudyMultiSessionNoTurnover
+#   description: Multisession training (without neural turnover) comparing SparseRBM vs Sparse-NG vs sparse-connectivity-NG
+#   root_dir: experiments/tmp
+#   iterative: true
+
+#   preprocessing:
+#     type: simulated
+#     length: 200
+#     train_size: 1000
+#     test_size: 200
+#     classes: 5
+#     subclasses: 10
+#     subclass_dev: 0.2
+#     dev: 0.05
+#     activity: 0.1
+
+#   evaluation:
+#     type: generative
+#     train_iter: 1
+#     batch_size: 5
+#     sorted: false
+
+#   models:
+#     - type: sparse
+#       name: SparseRBM
+#       hidden: 1000
+#       momentum: 0.0
+#       expected_prob: 0.05
+#       sparsity_cost: 0.9
+#     - type: sparse-ng
+#       name: Neurogen
+#       hidden: 1000
+#       momentum: 0.0
+#       turnover: 0.0
+#       growth_rate: 0.1
+#       expected_prob: 0.05
+#       sparsity_cost: 0.9
+#       sparse_conn: false
+#     - type: sparse-ng
+#       name: Neurgen_SparseConn
+#       hidden: 1000
+#       momentum: 0.0
+#       turnover: 0.0
+#       growth_rate: 0.1
+#       expected_prob: 0.05
+#       sparsity_cost: 0.9
+#       sparse_conn: true
+
+- name: StudyMultisession
+  description: Multisession training (with neural turnover) comparing SparseRBM vs Sparse-NG vs sparse-connectivity-NG
+  root_dir: experiments/tmp
+  iterative: true
+
+  preprocessing:
+    type: simulated
+    length: 200
+    train_size: 1000
+    test_size: 200
+    classes: 5
+    subclasses: 10
+    subclass_dev: 0.2
+    dev: 0.05
+    activity: 0.1
+
+  evaluation:
+    type: generative
+    train_iter: 1
+    batch_size: 5
+    sorted: false
+
+  models:
+    - type: sparse
+      name: SparseRBM
+      hidden: 1000
+      momentum: 0.0
+      expected_prob: 0.05
+      sparsity_cost: 0.9
+    - type: sparse-ng
+      name: Neurogenesis
+      hidden: 1000
+      momentum: 0.0
+      turnover: 0.05
+      growth_rate: 0.1
+      expected_prob: 0.05
+      sparsity_cost: 0.9
+    - type: sparse-ng
+      name: Neurogenesis_Sparsely_Connected
+      hidden: 1000
+      momentum: 0.0
+      turnover: 0.05
+      growth_rate: 0.1
+      expected_prob: 0.05
+      sparsity_cost: 0.9
+      sparse_conn: true

@@ -1,0 +1,415 @@
+\chapter{Learning Dependent Regulation of Neurogenesis and Apoptosis}
+\label{chap:learn-dep-ng}
+
+As discussed in \cref{chap:intro}, computational hippocampal models 
+that incorporate neurogenesis typically do so by
+either replacing existing neurons by re-randomizing their weights 
+(e.g., \cite{replacement_neurogenesis,chambers-potenza-hoffman-miranker-04}) 
+or by introducing new neurons with random weights (e.g., \cite{additive_neurogenesis,weisz-argibay-2012}).
+Several additional models have looked at how regulation of neurogenesis can impact learning and plasticity 
+by simulating dynamically regulated neural turnover and replacement
+\citep{deisseroth-singla-toda-monje-palmer-malenka-04,apoptosis-neurogenesis-hebbian-networks,chambers-conroy-07}.
+However, none have modelled neurogenesis and apoptosis as independent operations.
+Such a model could prove 
+extremely useful in exploring the results of recent 
+studies examining the potential role 
+of neurogenesis in human memory at both short and long time scales. 
+Studies have shown that alcohol, stress \& depression, age 
+and environmental enrichment all help to regulate rates of 
+neurogenesis 
+\citep{origin_of_microneurons, enrichment-and-activity-dependent-regulation-of-neurogenesis, 
+enrichment-dependent-regulation-of-neurogenesis}
+Likewise, a study by \citet{dery-goldstein-becker-15} showed that 
+lower stress and depression scores 
+were associated with improved item 
+recognition over larger time spans (two weeks). 
+While the stress \& depression scores were presumed to 
+negatively correlate with neurogenesis levels, it remains unclear as to what extent 
+neurogenesis contributed to performance on item 
+recognition tasks \citep{dery-goldstein-becker-15}.
+A model that can up and down regulate neurogenesis on 
+memory encoding and cued recall tasks could be useful in testing 
+these assumptions.
+Furthermore, dynamic regulation of both neurogenesis and apoptosis could help
+control the network size relative to changes in the input datasets; 
+such a model could have benefits to \ac{ANN} and machine learning research as well.
+In this chapter, we will expand our replacement neurogenesis model from \cref{chap:ng-paradox} 
+into a more dynamic model by separating apoptosis and neurogenesis into separate processes,
+allowing neurogenesis and apoptosis to be a up and down regulated appropriately.
+
+It is difficult to 
+estimate exact rates of apoptosis and neurogenesis 
+in the dentate gyrus as many factors govern these complex processes. 
+However, it is generally accepted that among healthy cells, apoptosis is 
+activity and age dependent \citep{why-neurons-die, cecchi-et-al-01}.
+Likewise, studies have shown that alcohol, stress \& depression, age 
+and environmental enrichment all help to regulate rates of 
+neurogenesis 
+\citep{origin_of_microneurons, enrichment-and-activity-dependent-regulation-of-neurogenesis, 
+enrichment-dependent-regulation-of-neurogenesis}. 
+Given these regulator mechanisms, 
+how can we cohesively model them in an \ac{ANN} so as to benefit learning? 
+In this chapter, we will 
+demonstrate how existing methods of hidden layer growing and 
+pruning in \acp{ANN} can be leveraged to create such a 
+hybrid model.
+
+\section{Methods}
+
+To review, \acp{ANN} learn datasets by minimizing some cost function. 
+While different objective functions can be used depending on the 
+type of \ac{ANN}, in all cases the cost function represents how well the 
+network has been fit to the desired data. 
+Similarly, the gradient of the cost function 
+can be used to monitor learning in a \ac{ANN}. 
+While many hyperparameters in 
+an \ac{ANN} can be tuned to improve performance or find the minimum more quickly, 
+changing the size of an \ac{ANN}'s hidden layer is one of the most common and effective. 
+While increasing the size of a hidden layer will usually improve the model's fit to the training set, 
+this has a diminishing return relative to the computational cost of running the network, 
+and can even contribute to overfitting \citep{network-size-baum, network-size-denker, network-size-lecun}. 
+As figure ~\ref{fig:size_vs_performance} demonstrates, the \ac{RBM} model 
+used in \cref{chap:ng-paradox} has exactly this problem. 
+The computational complexity increases 
+at a linear rate, while the performance is only increasing 
+sublinearly. 
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=.8\textwidth]{Figs/size_vs_performance}
+\end{center}
+\caption{The pseudo-likelihood score and 
+computational cost relative to hidden layer size.}
+\label{fig:size_vs_performance}
+\end{figure}
+
+Since the optimal hidden layer size depends on other hyperparameters as well 
+as the dataset being learned, it is typically left to the network 
+architect to decide what the appropriate 
+hidden layer size should be. 
+Unfortunately, this task is often 
+tedious and time consuming for even the most experienced network 
+architects. 
+As a result, several automated methods 
+have been proposed for determining the optimal hidden 
+layer size, which can be grouped into two 
+primary classes. 
+The first class starts with a small hidden 
+layer size and gradually adds neurons, while the second 
+starts with a large network and prunes off neurons.
+
+Network growing involves starting with a small hidden layer, 
+often containing 0 or 1 neurons, and gradually adding new nodes. 
+There are two common approaches to network growing, the 
+cascade-correlation learning architecture \citep{cascade-correlation} 
+and \ac{DNC} \citep{DNC}. 
+Cascade-correlation learning uses a special kind of feedforward network where
+each new neuron is trained on the network input and also receives input from all 
+previously trained hidden neurons. 
+Once a new hidden unit is trained, 
+it is added to the network, and its input weights are frozen. 
+This process is repeated
+until some satisfactory error rate threshold is reached. 
+This architecture has the benefit of allowing new neurons to be 
+added to a network without impacting existing hidden units, 
+which eliminates the need for existing network weights 
+to be re-adjusted and speeds up training times \citep{cascade-correlation}.
+\Ac{DNC} more intuitively trains a standard 
+feedforward network with a single hidden unit, 
+until the squared error converges, another 
+hidden unit is added and the network is re-trained. 
+Similar to cascade-correlation learning, 
+this is repeated until some error rate threshold 
+is reached.
+\Ac{DNC} has the benefit of being more general, in that we could 
+easily apply it to our \ac{RBM} model.
+\Ac{DNC} also tends to lead to 
+smaller network architectures because it can utilize existing weights 
+when re-training on new hidden units \citep{DNC}, 
+which better aligns with how new neurons impact 
+existing neural connections in the \ac{DG} \citep{mcavoy-et-al-15}. 
+Furthermore, by adjusting our learning rates and weight decays based on neuron age, as 
+discussed in \cref{chap:ng-paradox}, we are already reducing the degree to which 
+existing neural connections must change relative to the new neurons. 
+More specifically, by having a higher learning rate and weight decay for 
+young \acp{DGC} and lower values for mature \acp{DGC}, we can ensure 
+that the re-training steps impact the new neurons more than existing ones.
+
+Network pruning involves starting with a large hidden layer and gradually removing neurons.
+While network growing attempts to add neurons until the additional neurons do not 
+improve performance, pruning tries to remove unnecessary 
+neurons until their removal degrades performance. 
+The goal with network pruning is always 
+to remove nodes with minimal negative impact on network performance. 
+While more complex methods exist, 
+the simplest approach is to use a metric for neural saliency, or how well
+a given unit is contributing to the learning in the entire network \citep{optimal-brain-damage}. 
+In \cref{chap:ng-paradox}, we used the 
+magnitude of the weights, the standard deviation between weights, and 
+the neural age to rank neurons by their saliency. 
+Essentially, if the average 
+magnitude of the weights for a given hidden unit is low, then it 
+should have less impact on the output. 
+Similarly, if the standard deviation between the weights is 
+relatively small, this is a sign that the neuron is not differentiating inputs as well.
+A nice property of this simplistic saliency metric is that we can clearly 
+prioritize neurons to remove based on their stimulus specificity, 
+synaptic strength and age.
+
+While methods for automated hidden layer size selection exist, they only perform either
+network growing or pruning, but not both.
+In this chapter we propose a new 
+method that can perform both network growing and pruning 
+to model regulation of neurogenesis and apoptosis. 
+This allows us to model the learning dependent regulation 
+of neurogenesis and apoptosis observed in the existing literature.
+
+\subsection{Monitoring Learning}
+
+We can see that monitoring learning performance in both network 
+growing and pruning are key to determining a 
+stopping criterion.
+However, in order to regulate both mechanisms 
+we will need a way of dynamically adjusting 
+the amount to grow and prune. 
+This method will need to 
+adapt to new patterns unlike existing methods.
+
+The first step in regulating growing and pruning of the hidden layer 
+will be to determine a metric for evaluating and monitoring learning 
+performance. 
+While it is not unreasonable to use the reconstruction 
+error of the \ac{RBM} on the training dataset, the preferred method 
+of monitoring learning is to calculate the pseudo-likelihood at the 
+end of each epoch (iteration through the training set). 
+The pseudo-likelihood in this situation is an approximation 
+of how closely the representation of the dataset in the \ac{RBM} fits 
+the actual training set.
+
+\begin{equation}
+E = -a'v - \sum \mathrm{log}(1 + e^{b + W'v}) \label{eq.energy}
+\end{equation}
+where $v$ is the input vector, $W$ are the weights, and $a$ and $b$ are biases.
+
+\begin{equation}
+\mathrm{PL}(v) = \frac{e^{-E(v_i)}}{(e^{-E(v_i)} + e^{-E(v_{i'})})} \label{eq.likelihood}
+\end{equation}
+where $v_i$ is the input vector and $v_{i'}$ is the same input vector, but with a 
+random element $i$ flipped.
+
+\subsection{Convergence Method}
+
+We will be using the convergence of 
+the pseudo-likelihood as a stopping condition, 
+unlike the growing and pruning methods described above that 
+used an arbitrary error rate.
+This has two main benefits. 
+First, by using convergence, we do not require any expectation 
+of what the resulting pseudo-likelihood should be, 
+making the method more robust to changes in the input data.
+Second, the convergence calculation will give us a 
+method for dynamically deciding how many neurons to add or remove 
+at a given time, rather than always adding or removing a single 
+neuron.
+
+To monitor convergence, we simply use the ratio test, also referred to as the D'Alembert's criterion \citep{ratio-test}.
+
+\begin{equation}
+r = |\frac{\mathrm{PL}(v)_{n+1}}{\mathrm{PL}(v)_{n}}| \label{eq.conv}
+\end{equation}
+
+when:
+\begin{itemize}
+\item[] $r < 1$ | pseudo-likelihood is converging
+\item[] $r = 1$ | pseudo-likelihood cannot converge anymore
+\item[] $r > 1$ | pseudo-likelihood is diverging
+\end{itemize}
+
+
+So how does this relate to growing or pruning the hidden layer? 
+If the pseudo-likelihood is still converging, adding more hidden units 
+may still help. 
+Conversely, if the pseudo-likelihood 
+is not converging or even diverging, simply adding more hidden 
+units likely will not help. 
+However, pruning the existing layer 
+may help by compressing the current network and 
+making room for new neurons when the dataset changes. 
+With these assumptions, we can formulate two simple 
+calculations to give us the number of units to add and remove.
+
+% size * (percent_change * (1.0 - cratio))
+\begin{equation}
+C = ||n\times\epsilon(1 - r)|| \label{eq.create}
+\end{equation}
+
+% size * (percent_change * dratio)
+\begin{equation}
+D = ||n\times\epsilon(r)|| \label{eq.destroy}
+\end{equation}
+
+In equations \ref{eq.create} and \ref{eq.destroy} $n$ is the hidden layer 
+size, $r$ is our convergence ratio from \ref{eq.conv}, and 
+$\epsilon$ is a maximum percentage with which to grow or prune the network. 
+
+\subsection{Experiments}
+
+In order to evaluate our convergence based method, 
+we first needed to demonstrate that it was successfully able to determine an 
+appropriate layer size on different static datasets. 
+In our first test, we 
+repeatedly trained our neurogenesis model with 
+identical settings on different static datasets, 
+where each dataset had the same number of observations, but 
+some datasets had more classes to learn than others. 
+Between each 
+training session we used our convergence method to determine 
+how many neurons to add or remove from the hidden layer; the model 
+was then recreated with the appropriate hidden layer size. 
+We expected that networks being trained on datasets with fewer classes would 
+require smaller hidden layers and would plateau more quickly, 
+while the RBMs being trained on the datasets with more classes would require larger 
+hidden layers and plateau more slowly.
+
+In order to demonstrate that our convergence based method could model 
+learning dependent regulation of neurogenesis and apoptosis, we 
+also needed to demonstrate that the hidden layer size appropriately 
+changed in relation to learning demand. 
+In our second experiment, we 
+followed the same aforementioned training procedure, but instead of 
+just training on the same dataset for the entire time, we periodically 
+changed it to observe how the convergence method adapts. 
+We expected 
+to see the same initial pattern as in the previous test, 
+but with a sudden pruning followed by growing 
+when the dataset changed. 
+
+For these experiments the models used a turnover of 10\%, a learning rate 
+of 0.1 and a momentum of 0.9, with no weight decay or 
+sparsity constraints. 
+The higher learning rate and momentum values were used to help 
+speed up training and ensure the network had fully learned the 
+dataset prior to resizing.
+The models had a starting hidden 
+layer size of 150 and a visible layer size of 100. 
+Datasets were generated by creating 5, 10 and 15 prototype patterns, which 
+were then used to seed 1000 observations for training. 
+The training data was repeatedly fit to the model and after each fitting 
+session the dynamic hidden layer scaling described earlier was applied. 
+This was performed for 100 repetitions to observe how the hidden 
+layer size changed relative to the complexity of the input data.
+During each fit session the training was terminated when 
+either the pseudo-likelihood calculation converged or when 
+training exceeded 100 epochs. 
+These stopping conditions 
+were chosen to constrain each training session, while providing 
+enough training time to minimize noise between hidden layer resizing. 
+While the same settings were used for the second experiment, 
+the process was repeated on 3 different datasets, without reinitializing our 
+model in between. 
+These dataset changes were intended 
+to represent a novel environment with increased learning demands.
+
+\section{Results}
+
+Our preliminary results from the static dataset test showed 
+appropriate hidden layer growth relative to the complexity of the input data. 
+Specifically, figure ~\ref{fig:static_regulated} shows that 
+training on fewer classes results in less hidden layer growth and a quicker plateau, 
+while training on a dataset with more classes takes longer to plateau and 
+leads to larger hidden layer sizes. 
+While this very clearly fits our initial hypothesis, 
+it is interesting to note that for the first 25 repetitions the network trained with 10 classes 
+required a larger hidden layer than the network trained with 15 classes.
+This demonstrates that our method may still be sensitive to the learning rate, 
+momentum and stopping conditions used in training the network; 
+however, this should be thoroughly investigated prior to these results being finalized.
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=.8\textwidth]{Figs/static_regulated}
+\end{center}
+\caption{
+Changes in size per iteration are shown for three 
+different training sets with either 5, 10 or 15 different pattern classes 
+per dataset for a single static dataset.}
+\label{fig:static_regulated}
+\end{figure}
+
+While our preliminary results from the dynamic dataset test showed the 
+sudden pruning and growth we expected, it appears that the 
+apoptosis and neurogenesis are not balanced in this experiment. 
+We can see in figure ~\ref{fig:dynamic_regulated} that for each new dataset introduced, 
+the total number of neurons required is significantly increased. 
+While in many circumstances 
+this seems appropriate, it could once again suggest that our 
+stopping conditions may be too strict. 
+
+\begin{figure}[!h]
+\begin{center}
+\includegraphics[width=.8\textwidth]{Figs/dynamic_regulated}
+\end{center}
+\caption{ 
+Changes in network size per iteration are shown for three 
+different training sets with either 5, 10 or 15 different pattern classes 
+per dataset. Over the 300 iterations the training dataset is changed 
+twice (after 100 and 200 iterations) to observe how the existing network adapts 
+to new data.}
+\label{fig:dynamic_regulated}
+\end{figure}
+
+\section{Discussion}
+
+Existing models have used either an additive or replacement method for introducing new 
+neurons in a neurogenesis model. 
+In this chapter, we proposed that a 
+hybrid approach, with neurogenesis and apoptosis as 
+independent operations, could provide a more biologically plausible model. 
+We were particularly interested in showing whether such a method could  
+1) regulate neurogenesis based on the complexity of the input data, and 
+2) allow the network to adjust its rates of neurogenesis and apoptosis in response to 
+dataset changes.
+
+We began by drawing on existing literature for growing and pruning \ac{ANN} 
+hidden layers. 
+This revealed a common theme of using a minimum threshold 
+over a cost function to determine when to add or remove neurons in the network. 
+By replacing the threshold with a convergence metric 
+as we approach the minimum, we were able to produce a method that can 
+both grow and prune a network.
+
+While our first experiment shows that our method is sensitive to the complexity of the input 
+dataset, the relationship between input complexity and the resulting hidden 
+layer size does not always hold, particularly for early repetitions. 
+This may indicate that we needed 
+to further tweak our hyperparameters or make the stopping criteria more flexible. 
+Our second experiment showed that our method is also adaptable 
+to changes in the input datasets. 
+Once again, we noted that the rates of neurogenesis 
+and apoptosis were not balanced, often resulting in significantly higher rates 
+of neurogenesis over apoptosis when presented with new datasets. 
+Again, this indicates that further tweaking of our hyperparameters or 
+stopping conditions may be necessary.
+
+While the current method simply uses the convergence ratio to determine how many neurons 
+to add or remove, this can be particularly problematic in networks where the learning  
+has already plateaued. 
+In these cases our method would not create or destroy any neurons, despite 
+being the correct choice. 
+As such, our method could benefit from a stochastic offset 
+parameter that could promote exploration once the network size has already converged. 
+This parameter, along with the max percentage change, could be useful when examining other 
+external neurogenesis factors such as exercise, depression and alcohol. 
+For example, it is generally believed that exercise increases the metabolic rate, 
+which can increase the number of \acp{NPC}, but the learning demand 
+is what determines whether those cells are recruited or 
+die off \citep{enrichment-activity-interactions}. 
+In order to model this behaviour, future experiments could adjust the max percentage change 
+parameter and include a convergence ratio offset to work collaboratively in much the same way.
+
+In summary, we presented a novel approach to modelling learning dependent regulation 
+of neurogenesis and apoptosis, and demonstrated how it successfully adapts to 
+relative complexity and changes in the input dataset. 
+Future work in this area should 
+address the issue of exploration vs exploitation once the 
+network has converged. 

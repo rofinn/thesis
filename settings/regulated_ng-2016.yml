@@ -1,0 +1,45 @@
+---
+- name: StudyMultisession
+  description: Multisession training (with neural turnover) comparing SparseRBM vs Sparse-NG vs sparse-connectivity-NG
+  root_dir: experiments/tmp
+  iterative: true
+  shared_settings:
+    hidden: 1000
+    momentum: 0.0
+    n_epochs: 1
+    batch_size: 5
+    lr: 0.0025
+
+  dataset:
+    type: generated
+    length: 200
+    train_size: 1000
+    test_size: 200
+    classes: 5
+    subclasses: 10
+    subclass_dev: 0.2
+    dev: 0.05
+    activity: 0.1
+
+  evaluator:
+    type: generative
+    sorted: false
+
+  models:
+    - type: base
+      name: SparseRBM
+      sparsity_target: 0.05
+      sparsity_cost: 0.9
+    - type: neurogenesis
+      name: Neurogenesis
+      turnover: 0.05
+      growth_rate: 0.1
+      sparsity_target: 0.05
+      sparsity_cost: 0.9
+    - type: neurogenesis
+      name: Neurogenesis_Sparsely_Connected
+      turnover: 0.05
+      growth_rate: 0.1
+      sparsity_target: 0.05
+      sparsity_cost: 0.9
+      sparse_conn: true

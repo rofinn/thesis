@@ -1,0 +1,525 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% McMaster Masters/Doctoral Thesis 
+% LaTeX Template
+% Version 2.2 (11/23/15)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+% Then subsequently from http://www.overleaf.com
+%
+% Version 2.0 major modifications by:
+% Vel (vel@latextemplates.com)
+%
+% Original authors:
+% Steven Gunn  (http://users.ecs.soton.ac.uk/srg/softwaretools/document/templates/)
+% Sunil Patel (http://www.sunilpatel.co.uk/thesis-template/)
+%
+% Modified to McMaster format by Benjamin Furman (http://www.benjaminfurman.wordpress.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+% DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[
+11pt, % The default document font size, options: 10pt, 11pt, 12pt
+oneside, % Two side (alternating margins) for binding by default, uncomment to switch to one side
+english, % ngerman for German
+%singlespacing, % Single line spacing, alternatives: onehalfspacing or doublespacing
+doublespacing
+%draft, % Uncomment to enable draft mode (no pictures, no links, overfull hboxes indicated)
+%nolistspacing, % If the document is onehalfspacing or doublespacing, uncomment this to set spacing in lists to single
+%liststotoc, % Uncomment to add the list of figures/tables/etc to the table of contents
+%toctotoc, % Uncomment to add the main table of contents to the table of contents
+%parskip, % Uncomment to add sp ace between paragraphs
+]{McMasterThesis} % The class file specifying the document structure
+
+%----------------------------------------------------------------------------------------
+% Import packages here
+%----------------------------------------------------------------------------------------
+\usepackage[utf8]{inputenc} % Required for inputting international characters
+\usepackage[T1]{fontenc} % Output font encoding for international characters
+\usepackage{graphicx}
+\usepackage{palatino} % Use the Palatino font by default
+\usepackage{lastpage} % count pages
+\usepackage{siunitx} % for scientific units (micro-liter, etc)
+\usepackage{rotating}
+
+\DeclareGraphicsExtensions{.pdf,.png,.jpg,.jpeg}
+
+%----------------------------------------------------------------------------------------
+% Handling Citations
+%----------------------------------------------------------------------------------------
+\usepackage[backend=bibtex,firstinits=true,style=authoryear,natbib=true,sorting=nyt,maxbibnames=99]{biblatex} % User the bibtex backend with the authoryear citation style (which resembles APA)
+% can change the maxbibnames to cut long author lists to specified length followed by et al., currently set to 99. 
+\addbibresource{bibliography.bib} % The filename of the bibliography
+\usepackage[autostyle=true]{csquotes} % Required to generate language-dependent quotes in the bibliography
+
+\DeclareNameAlias{sortname}{last-first}
+%----------------------------------------------------------------------------------------
+% Collect all your header information from the chapters here, each header or the chapters should be pretty clean
+%----------------------------------------------------------------------------------------
+\usepackage{parskip} %this will put spaces between my paragraphs
+\setlength{\parindent}{15pt} % this will create and indent on all but the first paragraph of each section. 
+
+%\usepackage{acronym}
+%\acrodef{est}[EST]{expressed sequence tag}
+%\acrodef{Xl}[\textit{X.\,laevis}]{\textit{Xenopus laevis}}
+\usepackage{acro}
+\usepackage{amsmath}
+\usepackage{subcaption}
+\usepackage{lineno}
+%\linenumbers
+
+\DeclareAcronym{EC}{
+	short = EC,
+	long = entorhinal cortex
+}
+\DeclareAcronym{DG}{
+	short = DG,
+ 	long = dentate gyrus
+}
+\DeclareAcronym{DGC}{
+	short = DGC,
+ 	long = dentate granule cell
+}
+\DeclareAcronym{NPC}{
+	short = NPC,
+	long = neural progenitor cell
+}
+\DeclareAcronym{AHN}{
+	short = AHN,
+	long = adult hippocampal neurogenesis
+}
+\DeclareAcronym{PP}{
+	short = PP,
+	long = perforant pathway
+}
+\DeclareAcronym{TA}{
+	short = TA,
+	long = temporoammonic pathway
+}
+\DeclareAcronym{ANN}{
+	short = ANN,
+	long = artificial neural network
+}
+\DeclareAcronym{FFNN}{
+	short = FFNN,
+	long = feed forward neural network
+}
+\DeclareAcronym{RNN}{
+	short = RNN,
+	long = recurrent neural network
+}
+\DeclareAcronym{LSTM}{
+	short = LSTM,
+	long = long short-term memory
+}
+\DeclareAcronym{ESN}{
+	short = ESN,
+	long = echo state network
+}
+\DeclareAcronym{LSM}{
+	short = LSM,
+	long = liquid state machine
+}
+\DeclareAcronym{RBM}{
+	short = RBM,
+   	long = restricted boltzmann machine
+}
+\DeclareAcronym{CD}{
+	short = CD,
+	long = contrastive divergence
+}
+\DeclareAcronym{CRBM}{
+	short = CRBM,
+ 	long = conditional restricted boltzmann machine
+}
+\DeclareAcronym{TRBM}{
+	short = TRBM,
+	long = temporal restricted boltzmann machine
+}
+\DeclareAcronym{DBN}{
+	short = DBN,
+	long = deep belief network
+}
+\DeclareAcronym{DNC}{
+	short = DNC,
+	long = dynamic node creation
+}
+
+\usepackage{etoolbox}
+\preto\chapter{\acresetall} % resets acronyms for each chapter
+%\preto\section{\acresetall} % reset acronyms after each section
+
+\usepackage{xspace} %helps spacing with custom commands. 
+\usepackage{cleveref}
+
+\usepackage{pgfplotstable} % a much better way to handle tables
+% can drop in table information here, then call later, if you choose (as opposed to calling a file or typing in/copy--paste by hand). 
+% \usepackage{float} % if you need to demand figure/table placement, then this will allow you to use [H], which should be strong. 
+
+%----------------------------------------------------------------------------------------
+%	THESIS INFORMATION
+%----------------------------------------------------------------------------------------
+
+\thesistitle{Computational Modelling of Adult Hippocampal Neurogenesis} % Your thesis title, print it elsewhere with \ttitle
+\supervisor{Dr. Suzanna Becker} % Your supervisor's name, print it elsewhere with \supname
+\examiner{} % Your examiner's name, print it elsewhere with \examname
+\degree{Master of Science} % Your degree name, print it elsewhere with \degreename
+\author{Rory Finnegan} % Your name, print it elsewhere with \authorname
+\addresses{102 Gladstone Ave., Hamilton, Ontario, L8M 2H9, Canada} % Your address, print it elsewhere with \addressname
+
+\subject{Computational Neuroscience} % Your subject area, print it elsewhere with \subjectname
+\keywords{Hippocampus, Neurogenesis, Modelling, Neuroscience, Boltzmann, Computational} % Keywords for your thesis, print it elsewhere with \keywordnames
+\university{\href{http://www.mcmaster.ca/}{McMaster University}} % Your university's name and URL, print it elsewhere with \univname
+\department{\href{http://neurosciencemcmaster.ca/}{McMaster Integrative Neuroscience \& Discovery}} % Your department's name and URL, print it elsewhere with \deptname
+\group{\href{http://graduate.mcmaster.ca/pnb/department/becker/index.html}{Neurotechnology and Neuroplasticity Lab}} % Your research group's name and URL, print it elsewhere with \groupname
+\faculty{\href{http://www.science.mcmaster.ca/}{Faculty of Science}} % Your faculty's name and URL, print it elsewhere with \facname
+
+\hypersetup{pdftitle=\ttitle} % Set the PDF's title to your title
+\hypersetup{pdfauthor=\authorname} % Set the PDF's author to your name
+\hypersetup{pdfkeywords=\keywordnames} % Set the PDF's keywords to your keywords
+
+\begin{document}
+
+ \frontmatter % Use roman page numbering style (i, ii, iii, iv...) for the pre-content pages
+
+\pagestyle{plain} % Default to the plain heading style until the thesis style is called for the body content
+
+%----------------------------------------------------------------------------------------
+%	Half Title (lay title)
+%----------------------------------------------------------------------------------------
+%\begin{halftitle} % could not get this environment working
+%\vspace*{\fill}
+\vspace{6cm}
+\begin{center}
+Computational Modelling of Adult Hippocampal Neurogenesis % ideally, but it doesn't matter
+\end{center}
+%\vspace*{\fill}
+\pagenumbering{gobble} % leave this here, McMaster doesn't want this page numbered
+%\end{halftitle}
+\clearpage
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+% not exactly the Grad Studies example, but much nicer. 
+\pagenumbering{gobble}
+%\begin{titlepage} % had to turn off to get page numbering right
+\begin{center}
+
+\vfill
+\textsc{\Large \ttitle} \\
+
+\vfill
+By \authorname, \\%% -----> List degrees after comma  <----
+
+
+%% nicer title page
+%\textsc{\LARGE \univname}\\[1.5cm] % University name
+%\textsc{\Large Doctoral Thesis}\\[0.5cm] % Thesis type
+
+%\HRule \\[0.4cm] % Horizontal line
+%{\huge \bfseries \ttitle}\\[0.4cm] % original overleaf style
+%{\huge \sc \ttitle}\\[0.4cm] % Thesis title
+%\HRule \\[1.5cm] % Horizontal line
+ 
+%\begin{minipage}{0.4\textwidth}
+%\begin{flushleft} \large
+%\emph{Author:}\\
+%\href{http://www.johnsmith.com}{\authorname \\ M.Sc.} % Author name - remove the \href bracket to remove the link
+%\end{flushleft}
+%\end{minipage}
+%\begin{minipage}{0.4\textwidth}
+%\begin{flushright} \large
+%\emph{Supervisor:} \\
+%\href{http://www.jamessmith.com}{\supname} % Supervisor name - remove the \href bracket to remove the link  
+%\end{flushright}
+%\end{minipage}\\[3cm]
+ \vfill
+{\large \textit{A Thesis Submitted to the School of Graduate Studies in the Partial Fulfilment of the Requirements for the Degree \degreename}}\\
+%\\[0.3cm] % University requirement text
+%\textit{in the}\\[0.4cm]
+% \groupname\\
+%\deptname\\[2cm] % Research group name and department name
+
+
+\vfill
+
+%Insert Creative Commons Artwork
+\DeclareGraphicsExtensions{.pdf,.png,.jpg}
+\begin{center}
+{\large \univname\, \today}\\[4cm] 
+\leavevmode
+%Insert image file name below "cc-by-nc-nd.png"
+\includegraphics[width=1in]{Figs/cc-by-4.png}
+\end{center}
+\label{fig:cc}
+%insert a link to the licence and its description below
+\scriptsize{This thesis is licensed under a \href{http://creativecommons.org/licenses/by/4.0/}{Creative Commons Attribution 4.0 International License.}}
+
+%{\large \univname\, \copyright\, Copyright by \authorname\, \today}\\[4cm] % Date: replace \today with \date{} <---input date
+
+
+%\vfill
+\end{center}
+
+
+%\end{titlepage}
+
+
+%----------------------------------------------------------------------------------------
+%	Descriptive note numbered ii
+%----------------------------------------------------------------------------------------
+% Need to add below info
+\newpage
+\pagenumbering{roman} % leave to turn numbering back on
+\setcounter{page}{2} % leave here to make this page numbered ii, a Grad School requirement
+
+\noindent % stops indent on next line
+\univname \\ 
+\degreename\, (\the\year) \\
+Hamilton, Ontario (\deptname) \\[1.5cm]
+TITLE: \ttitle \\
+AUTHOR: \authorname\,  %list previous degrees
+(\univname)  \\
+SUPERVISOR: \supname\, \\ 
+NUMBER OF PAGES: \pageref{lastoffront}, \pageref{LastPage}  % put in iv and number
+
+\clearpage
+
+%----------------------------------------------------------------------------------------
+%	Lay abstract number iii
+%----------------------------------------------------------------------------------------
+% not actually included in most theses
+% uncomment below lines if you want to include one
+%\section*{Lay Abstract}
+%\addchaptertocentry{Lay Abstract}
+%\clearpage
+%----------------------------------------------------------------------------------------
+%	ABSTRACT PAGE
+%----------------------------------------------------------------------------------------
+
+% These commented lines produce a much nicer looking abstract, but it not how Grad Studies wants it. Though you may be able to get away with it.
+%\begin{abstract}
+%\addchaptertocentry{\abstractname} % Add the abstract to the table of contents
+%\end{abstract}
+
+\section*{Abstract} 
+\addchaptertocentry{Abstract}
+The hippocampus has been the focus of memory research for decades. 
+While the functional role of this structure is not fully understood, it is widely
+recognized as being vital for rapid yet accurate encoding and retrieval of associative
+memories. 
+Since the discovery of \ac{AHN} in the \ac{DG} 
+by Altman and Das in the 1960s, many theories and models have been formulated 
+to explain the functional role it plays in learning and memory. 
+These models postulate different ways in which new neurons are introduced 
+into the \ac{DG} and their functional importance for learning and memory.  
+Few, if any, previous models have incorporated the unique properties of young 
+adult-born \acp{DGC} and their developmental trajectory.
+In this thesis, we propose a novel computational model of the \ac{DG} that 
+incorporates the developmental trajectory of these \acp{DGC}, 
+including changes in synaptic plasticity, connectivity, excitability and lateral inhibition, 
+using a modified version of the \ac{RBM}. 
+Our results show superior performance on memory reconstruction tasks for 
+both recent and distally learned items, when the unique characteristics of young 
+\ac{DGC}s are taken into account. 
+The unique properties of the young neurons contribute to reducing retroactive and 
+proactive interference, at both short and long time scales, despite the 
+reduction in pattern separation due to their hyperexcitability. 
+Our replacement model is subsequently extended to support learning dependent 
+regulation of neurogenesis and apoptosis, 
+using a convergence based approach to network growing and pruning.
+This hybrid additive and replacement model provides 
+a more realistic and flexible approach to investigating the role of 
+neurogenesis regulation in learning and memory. 
+Finally, we incorporate the dentate gyrus 
+model into a full hippocampal circuit to assess cued recall performance. 
+Once again, our neurogenesis model shows decreased 
+proactive and retroactive interference.
+
+\clearpage
+
+\section*{Preface}
+\addchaptertocentry{Preface}
+This thesis consists of five chapters. \Cref{chap:intro} provides a brief literature 
+review and context for the experiments discussed in following chapters.
+\Cref{chap:ng-paradox} presents our initial \ac{AHN} model in the \ac{DG} 
+using a static neural turnover method. 
+\Cref{chap:learn-dep-ng} extends our model by simulating learning dependent 
+regulation of neurogenesis and apoptosis. 
+Finally, \cref{chap:full-model} presents a full hippocampal model to explore the role 
+of \ac{AHN} on cued recall tasks.
+ 
+\Cref{chap:ng-paradox} has been published in a special topics edition of the 
+{\em Frontiers in Systems Neuroscience} journal series\footcite{finnegan-becker-15}. 
+The content from \cref{chap:ng-paradox} has been included in this thesis under the 
+terms of the Creative Commons Attribution License (CC-BY 3.0). 
+However, the introduction and discussion sections have been heavily 
+modified in order to better fit the format of this thesis.
+The source code for all experiments presented in this document have been made publicly available 
+under the terms of an MIT License\footcite{thesis}.
+This thesis and its corresponding defence presentation are also available under 
+a Creative Commons Attribution License (CC-BY 4.0).
+ 
+Dr. Suzanna Becker originally proposed using the \ac{RBM} as the base \ac{ANN} model for this work 
+and provided input on the design of the full hippocampal 
+model described in \cref{chap:full-model}.
+Dr. Becker assisted in writing the original introduction and discussion 
+sections for \cref{chap:ng-paradox}, and provided a review and 
+edits for the remainder of this thesis. 
+The base \ac{RBM} model was written in Julia\footcite{julialang} using the Boltzmann.jl 
+package\footcite{boltzmannjl}. 
+I was responsible for writing the remainder of the manuscript, 
+as well as designing, implementing and analyzing the results from each experiment.
+
+Support for this research was provided by an NSERC Discovery grant awarded to Dr. Suzanna Becker,
+and a personal grant from Invenia Technical Computing.
+
+%----------------------------------------------------------------------------------------
+%	ABBREVIATIONS
+%----------------------------------------------------------------------------------------
+% many these don't use this section, as it will be declared at first use and again each chapter. Uncomment these four lines to activate
+\clearpage
+\section*{\Huge Acronyms}
+\addchaptertocentry{Acronyms}
+\printacronyms[name] % name without an option stops the header
+
+\clearpage
+
+\section*{Acknowledgements}
+\addchaptertocentry{Acknowledgements}
+%\begin{acknowledgements}
+%\addchaptertocentry{\acknowledgementname} % Add the acknowledgments to the table of contents
+
+Thank you to the faculty and staff members in the MiNDS program for imparting 
+the skills and knowledge necessary to complete this thesis. 
+I am particularly appreciative of Dr. Sue Becker's 
+constant support, guidance and above all patience over the past two 
+years. It has been a pleasure working with you. 
+
+I am grateful for the supportive, 
+friendly and stimulating work environment fostered in the 
+Neurotechnology and Neuroplasticity Lab.
+Sincerest thanks to Kiret Dhindsa and Craig Hutton for 
+always being around to provide suggestions and feedback.
+
+To my family and friends, thank you for your continual support and confidence in my 
+abilities throughout this endeavour.
+
+Finally, to my partner and best friend Raelene Foisy, thank you for your wisdom, kindness 
+and encouragement. This would not have been possible without you.
+
+%\end{acknowledgements}
+
+%----------------------------------------------------------------------------------------
+%	LIST OF CONTENTS/FIGURES/TABLES PAGES
+%----------------------------------------------------------------------------------------
+
+\tableofcontents % Prints the main table of contents
+
+
+%----------------------------------------------------------------------------------------
+%	DECLARATION PAGE
+%----------------------------------------------------------------------------------------
+
+%\begin{declaration}
+%\addchaptertocentry{\authorshipname}
+%
+%\noindent I, \authorname, declare that this thesis titled, \enquote{\ttitle} and the work presented in it are my own. I confirm that:
+%
+%\begin{itemize} 
+%\item List each chapter
+%\item and what you have done for it
+%\end{itemize}
+% 
+%%\noindent Signed:\\
+%%\rule[0.5em]{25em}{0.5pt} % This prints a line for the signature
+% 
+%%\noindent Date:\\
+%%\rule[0.5em]{25em}{0.5pt} % This prints a line to write the date
+%\end{declaration}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% optional page stuff
+%----------------------------------------------------------------------------------------
+% can do physical constraints and symbols pages, see the original thesis example on overleaf if you want to include them at https://www.overleaf.com/latex/templates/template-for-a-masters-slash-doctoral-thesis/mkzrzktcbzfl#.VlPeicorpE4
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+%	QUOTATION PAGE
+%----------------------------------------------------------------------------------------
+
+%\vspace*{0.2\textheight}
+
+%\noindent\enquote{\itshape Thanks to my solid academic training, today I can write hundreds of words on virtually any topic without possessing a shred of information, which is how I got a good job in journalism.}\bigbreak
+
+%\hfill Dave Barry
+
+%----------------------------------------------------------------------------------------
+%	DEDICATION
+%----------------------------------------------------------------------------------------
+
+% \dedicatory{For/Dedicated to/To my\ldots} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%----------------------------------------------------------------------------------------
+% The following bit is just here to make sure we end up on a new page and get the total number of roman numeral
+\label{lastoffront}
+\clearpage
+% make sure this command is on the last of your frontmatter pages, i.e. only this command, a \clearpage then \mainmatter
+% should be fine without modification
+%----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+%	THESIS CONTENT - CHAPTERS
+%----------------------------------------------------------------------------------------
+
+\mainmatter % Begin numeric (1,2,3...) page numbering
+
+\pagestyle{thesis} % Return the page headers back to the "thesis" style
+
+% Include the chapters of the thesis as separate files from the Chapters folder
+% Uncomment the lines as you write the chapters
+
+\input{Chapters/Chapt1}      
+\input{Chapters/Chapt2} 
+\input{Chapters/Chapt3}
+\input{Chapters/Chapt4}
+\input{Chapters/Chapt5}
+
+%----------------------------------------------------------------------------------------
+%	THESIS CONTENT - APPENDICES
+%----------------------------------------------------------------------------------------
+
+%\appendix % Cue to tell LaTeX that the following "chapters" are Appendices
+
+% Include the appendices of the thesis as separate files from the Appendices folder
+% Uncomment the lines as you write the Appendices
+
+%\input{Appendix/Supp_Chap1.tex}
+%\input{Appendices/AppendixB}
+%\input{Appendices/AppendixC}
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%---------------------------------------------------------------------------------------
+%\printbibliography
+\printbibliography[heading=bibintoc]
+%\bibliography{bibliography}
+%----------------------------------------------------------------------------------------
+
+\end{document}

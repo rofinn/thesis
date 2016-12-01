@@ -1,0 +1,132 @@
+# # All results for experiments should be saved in the specified
+# # folder under the experiment name which should contain
+# # the following:
+# #  * An INFO file containing a copy of the settings for the experiment
+# #  * A snapshots folder with statistics-{{model}}.jld for each model
+# #  * A results folder containing per model results and combined summaries.
+
+---
+- name: BaseSameSession
+  description: Same session training comparing RBM with SparseRBM
+  root_dir: experiments/tmp
+  iterative: true
+  shared_settings:
+    hidden: 1000
+    momentum: 0.0
+    n_epochs: 1
+    batch_size: 5
+    lr: 0.0025
+
+  dataset:
+    type: generated
+    length: 200
+    train_size: 1000
+    test_size: 200
+    classes: 5
+    subclasses: 10
+    subclass_dev: 0.2
+    dev: 0.05
+    activity: 0.1
+
+  evaluator:
+    type: generative
+    sorted: false
+
+  models:
+    - type: base
+      name: RBM
+    - type: base
+      name: SparseRBM
+      sparsity_target: 0.05
+      sparsity_cost: 0.9
+
+- name: StudySameSession
+  description: Same session training comparing SparseRBM vs Sparse-NG vs sparse-connectivity-NG
+  root_dir: experiments/tmp
+  iterative: true
+  shared_settings:
+    hidden: 1000
+    momentum: 0.0
+    n_epochs: 1
+    batch_size: 5
+    lr: 0.0025
+
+  dataset:
+    type: generated
+    length: 200
+    train_size: 1000
+    test_size: 200
+    classes: 5
+    subclasses: 10
+    subclass_dev: 0.2
+    dev: 0.05
+    activity: 0.1
+
+  evaluator:
+    type: generative
+    sorted: false
+
+  models:
+    - type: base
+      name: SparseRBM
+      sparsity_target: 0.05
+      sparsity_cost: 0.9
+    - type: neurogenesis
+      name: Neurogenesis
+      turnover: 0.05
+      growth_rate: 0.1
+      sparsity_target: 0.05
+      sparsity_cost_max: 0.9
+    - type: neurogenesis
+      name: Neurgenesis_Sparsely_Connected
+      turnover: 0.05
+      growth_rate: 0.1
+      sparsity_target: 0.05
+      sparsity_cost_max: 0.9
+      sparse_conn: true
+
+- name: StudyMultisession
+  description: Multisession training (with neural turnover) comparing SparseRBM vs Sparse-NG vs sparse-connectivity-NG
+  root_dir: experiments/tmp
+  iterative: true
+  shared_settings:
+    hidden: 1000
+    momentum: 0.0
+    n_epochs: 1
+    batch_size: 5
+    lr: 0.0025
+
+  dataset:
+    type: generated
+    length: 200
+    train_size: 1000
+    test_size: 200
+    classes: 5
+    subclasses: 10
+    subclass_dev: 0.2
+    dev: 0.05
+    activity: 0.1
+
+  evaluator:
+    type: generative
+    age: true
+    sorted: false
+
+  models:
+    - type: base
+      name: SparseRBM
+      sparsity_target: 0.05
+      sparsity_cost: 0.9
+    - type: neurogenesis
+      name: Neurogenesis
+      turnover: 0.05
+      growth_rate: 0.1
+      sparsity_target: 0.05
+      sparsity_cost_max: 0.9
+    - type: neurogenesis
+      name: Neurogenesis_Sparsely_Connected
+      turnover: 0.05
+      growth_rate: 0.1
+      sparsity_target: 0.05
+      sparsity_cost_max: 0.9
+      sparse_conn: true
