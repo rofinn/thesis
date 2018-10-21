@@ -1,26 +1,28 @@
+from __future__ import print_function
+
+import keras
+from keras.datasets import mnist
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D
 from keras.optimizers import Optimizer
 from keras.legacy import interfaces
+from keras import backend as K
 from numpy import array
 from math import e
 
-import keras.backend as K
-import K.random_uniform_variable as uniform
-
 
 def normalize(pattern, lower=K.variable(0.0), upper=K.variable(1.0), epsilon=K.epsilon()):
-    assert lower < upper
+    # assert lower < upper
 
     # Get the range of existing values
-    R = max(pattern) - min(pattern)
+    R = K.max(pattern) - K.min(pattern)
 
     # Multiple the pattern by the scaling factor
     C = (upper - lower) / R
     scaled = C * pattern
 
     # Return the scaled values offset by the lower bound - minimum of the scaled values.
-    result = scaled + (lower - min(scaled))
+    result = scaled + (lower - K.min(scaled))
     return result
 
 
@@ -30,26 +32,29 @@ def gompertz(age, shape=5):
     values between 0 and 1.
     """
     t = (age * 2) - 1
-    return e ^ -e ^ -(shape * t)
+    # e ^ -e ^ -(shape * t)
+    return K.exp(-K.exp(-(shape * t)))
+
 
 
 def apoptosis(p, age, turnover):
-    diffs = normalize(K.std(p, axis=1)) * 0.65
-    act = normalize(K.mean(K.abs(p), axis=1)) * 0.15
+    dims = list(range(len(K.int_shape(p)) - 1))
+    diffs = normalize(K.std(p, axis=dims)) * 0.65
+    act = normalize(K.mean(K.abs(p), axis=dims)) * 0.15
 
     # rankings should also be a value between 0.0 and 1.0
-    rankings = nodiffs + act + (age * 0.2)
+    rankings = diffs + act + (age * 0.2)
 
     # Now pseudo-randomly reset a small percentage of the
     # e.g., keep_prob + rankings + rand / 3
     rand_tensor = 1.0 - turnover
+    rand_tensor += K.random_uniform_variable(shape=K.shape(age), low=0.0, high=1.0)
     rand_tensor += rankings
-    rand_tensor += uniform(shape=K.shape(age), low=0.0, high=1.0) + rankings)
     rand_tensor /= 3.0
-    binary_tensor = math_ops.floor(random_tensor)
+    binary_tensor = K.round(rand_tensor)
     return age * binary_tensor
 
-def Neurogen(Optimizer):
+class Neurogen(Optimizer):
     """Neurogenesis optimizer
 
     # Arguments
@@ -77,29 +82,28 @@ def Neurogen(Optimizer):
             self.lr_min = K.variable(lr[0], name='lr-min')
             self.lr_max = K.variable(lr[1], name='lr-max')
             self.momentum = K.variable(momentum, name='momentum')
-            self.decay_min = K.variable(lr[0], name='decay-min')
-            self.decay_max = K.variable(lr[1], name='decay-max')
-            self.sparsity_min = K.variable(lr[0], name='sparsity-min')
-            self.sparsity_max = K.variable(lr[1], name='sparsity-max')
+            self.decay_min = K.variable(decay[0], name='decay-min')
+            self.decay_max = K.variable(decay[1], name='decay-max')
+            self.sparsity_min = K.variable(sparsity[0], name='sparsity-min')
+            self.sparsity_max = K.variable(sparsity[1], name='sparsity-max')
             self.turnover = K.variable(turnover, name='turnover')
             self.growth = K.variable(growth, name='growth')
 
-    @interfaces.legacy_get_upates_support
+    @interfaces.legacy_get_updates_support
     def get_updates(self, loss, params):
         grads = self.get_gradients(loss, params)
         self.updates = [K.update_add(self.iterations, 1)]
 
         shapes = [K.int_shape(p) for p in params]
-        moments = [K.zeros(shape) for shape in shapes]
-        self.weights = self.iterations + moments
+        moments = [K.zeros(s) for s in shapes]
+        self.weights = [self.iterations] + moments
 
         # I'm not sure if this is the correct way of extract
         # this hidden layer dimension
-        print(shapes)
-        hsizes = [s[1] for s in shapes]
-        age = [uniform(shape=(n,), low=0.0, high=1.0) for n in hsizes]
+        hsizes = [s[-1] for s in shapes]
+        age = [K.random_uniform_variable(shape=(n,), low=0.0, high=1.0) for n in hsizes]
 
-        for p, g, a in zip(params, grads, moments, age):
+        for p, g, m, a in zip(params, grads, moments, age):
             # First compute the growth and lr, decay
             growth = gompertz(a)
 
@@ -121,10 +125,24 @@ def Neurogen(Optimizer):
             new_a = K.clip(a + self.growth, 0.0, 1.0)
 
             # Apoptosis (replacement)
-            new_a = apoptosis(p, age, self.turnover)
+            new_a = apoptosis(p, a, self.turnover)
 
             self.updates.append(K.update(p, new_p))
             self.updates.append(K.update(a, new_a))
+
+        ######## Basic SGD for debugging ########
+        # lr = self.lr_max
+
+        # for p, g, m in zip(params, grads, moments):
+        #     v = self.momentum * m - lr * g  # velocity
+        #     self.updates.append(K.update(m, v))
+        #     new_p = p + v
+
+        #     # Apply constraints.
+        #     if getattr(p, 'constraint', None) is not None:
+        #         new_p = p.constraint(new_p)
+
+        #     self.updates.append(K.update(p, new_p))
 
         return self.updates
 
@@ -138,17 +156,76 @@ def Neurogen(Optimizer):
         return normalize(growth, lower=self.sparsity_min, upper=self.sparsity_max)
 
 
-# model = Sequential()
+if __name__ == '__main__':
+    '''Trains a simple convnet on the MNIST dataset.
+    Gets to 99.25% test accuracy after 12 epochs
+    (there is still a lot of margin for parameter tuning).
+    16 seconds per epoch on a GRID K520 GPU.
+    '''
 
-# model.add(Dense(units=64, activation='relu', input_dim=100))
-# model.add(Dense(units=10, activation='softmax'))
+    batch_size = 128
+    num_classes = 10
+    epochs = 12
 
-# model.compile(
-#     loss='categorical_crossentropy',
-#     optimizer='sgd',
-#     metrics=['accuracy']
-# )
+    # input image dimensions
+    img_rows, img_cols = 28, 28
 
-# model.fit(x_train, y_train, epochs=5, batch_size=32)
-# loss_and_metrics = model.evaluate(x_test, y_test, batch_size=128)
-# classes = model.predict(x_test, batch_size=128)
+    # the data, split between train and test sets
+    (x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+    if K.image_data_format() == 'channels_first':
+        x_train = x_train.reshape(x_train.shape[0], 1, img_rows, img_cols)
+        x_test = x_test.reshape(x_test.shape[0], 1, img_rows, img_cols)
+        input_shape = (1, img_rows, img_cols)
+    else:
+        x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
+        x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
+        input_shape = (img_rows, img_cols, 1)
+
+    x_train = x_train.astype('float32')
+    x_test = x_test.astype('float32')
+    x_train /= 255
+    x_test /= 255
+    print('x_train shape:', x_train.shape)
+    print(x_train.shape[0], 'train samples')
+    print(x_test.shape[0], 'test samples')
+
+    # convert class vectors to binary class matrices
+    y_train = keras.utils.to_categorical(y_train, num_classes)
+    y_test = keras.utils.to_categorical(y_test, num_classes)
+
+    model = Sequential()
+    model.add(
+        Conv2D(
+            32,
+            kernel_size=(3, 3),
+            activation='relu',
+            input_shape=input_shape
+        )
+    )
+    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+    model.add(Flatten())
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(num_classes, activation='softmax'))
+
+    model.compile(
+        loss=keras.losses.categorical_crossentropy,
+        # optimizer=keras.optimizers.Adadelta(),
+        optimizer=Neurogen(),
+        metrics=['accuracy']
+    )
+
+    model.fit(
+        x_train, y_train,
+        batch_size=batch_size,
+        epochs=epochs,
+        verbose=1,
+        validation_data=(x_test, y_test)
+    )
+
+    score = model.evaluate(x_test, y_test, verbose=0)
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
