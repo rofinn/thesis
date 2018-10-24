@@ -67,9 +67,9 @@ class Neurogen(Optimizer):
     """
     def __init__(
         self,
-        lr=array([0.001, 0.1]),
+        lr=array([0.01, 0.1]),
         momentum=0.0,
-        decay=array([0.0, 0.005]),
+        decay=array([0.0, 0.0005]),
         sparsity=array([0.0, 0.1]),
         turnover=0.1,
         growth=0.05,
@@ -114,7 +114,8 @@ class Neurogen(Optimizer):
 
             # Normal SGD
             # Compute the update
-            v = lr * g - decay * p
+            v = self.momentum * m - lr * g - self.decay_max * p
+            self.updates.append(K.update(m, v))
             new_p = p + v
 
             # Apply constraints.
@@ -163,9 +164,9 @@ if __name__ == '__main__':
     16 seconds per epoch on a GRID K520 GPU.
     '''
 
-    batch_size = 128
+    batch_size = 100
     num_classes = 10
-    epochs = 12
+    epochs = 3
 
     # input image dimensions
     img_rows, img_cols = 28, 28
@@ -200,20 +201,22 @@ if __name__ == '__main__':
             32,
             kernel_size=(3, 3),
             activation='relu',
-            input_shape=input_shape
+            input_shape=input_shape,
+            use_bias=False,
         )
     )
-    model.add(Conv2D(64, (3, 3), activation='relu'))
+    model.add(Conv2D(64, (3, 3), activation='relu', use_bias=False))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
     model.add(Flatten())
-    model.add(Dense(128, activation='relu'))
+    model.add(Dense(128, activation='relu', use_bias=False))
     model.add(Dropout(0.5))
-    model.add(Dense(num_classes, activation='softmax'))
+    model.add(Dense(num_classes, activation='softmax', use_bias=False))
 
     model.compile(
         loss=keras.losses.categorical_crossentropy,
         # optimizer=keras.optimizers.Adadelta(),
+        # optimizer=keras.optimizers.SGD(),
         optimizer=Neurogen(),
         metrics=['accuracy']
     )
